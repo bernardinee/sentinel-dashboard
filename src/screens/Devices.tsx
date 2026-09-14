@@ -35,29 +35,29 @@ function Contacts({ device }: { device: Device }) {
     onSuccess: invalidate,
   })
 
-  const input = 'bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs'
+  const input = 'bg-ground border border-ground-line rounded-lg px-2 py-1.5 text-xs'
   return (
     <div>
-      <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+      <h4 className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-2">
         Emergency contacts
       </h4>
       <div className="space-y-1.5 mb-3">
         {(contacts ?? []).map(c => (
-          <div key={c.id} className="flex items-center gap-2 text-xs bg-slate-950 border border-slate-800 rounded-lg px-3 py-2">
-            <span className={`font-semibold ${c.active ? 'text-slate-200' : 'text-slate-600 line-through'}`}>
+          <div key={c.id} className="flex items-center gap-2 text-xs bg-ground border border-ground-line rounded-lg px-3 py-2">
+            <span className={`font-semibold ${c.active ? 'text-ink' : 'text-ink-soft line-through'}`}>
               {c.name}
             </span>
-            <span className="text-slate-500">{c.phone}</span>
-            {c.relationship && <span className="text-slate-600">· {c.relationship}</span>}
+            <span className="text-ink-soft">{c.phone}</span>
+            {c.relationship && <span className="text-ink-soft">· {c.relationship}</span>}
             <span className="flex-1" />
             <button onClick={() => toggle.mutate(c)}
-              className="text-slate-500 hover:text-slate-300">{c.active ? 'disable' : 'enable'}</button>
+              className="text-ink-soft hover:text-ink">{c.active ? 'disable' : 'enable'}</button>
             <button onClick={() => remove.mutate(c)}
-              className="text-red-500 hover:text-red-400">remove</button>
+              className="text-red-500 hover:text-red-600">remove</button>
           </div>
         ))}
         {contacts && contacts.length === 0 && (
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-ink-soft">
             None yet. The ESP32 keeps its own hardcoded SMS list as the fail-safe.
           </p>
         )}
@@ -71,11 +71,11 @@ function Contacts({ device }: { device: Device }) {
           onChange={e => setDraft({ ...draft, relationship: e.target.value })} />
         <button disabled={!draft.name || !draft.phone || add.isPending}
           onClick={() => add.mutate()}
-          className="px-3 py-1.5 rounded-lg bg-sky-700 hover:bg-sky-600 text-xs font-semibold disabled:opacity-40">
+          className="px-3 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-xs font-semibold disabled:opacity-40">
           Add
         </button>
       </div>
-      {error && <p className="text-xs text-red-400 mt-1.5">{error}</p>}
+      {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
     </div>
   )
 }
@@ -94,13 +94,13 @@ function DevicePanel({ device }: { device: Device }) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-bold">{device.device_id}</h3>
-          <p className="text-[11px] text-slate-500">
+          <p className="text-[11px] text-ink-soft">
             fw {device.firmware_version ?? '—'} · registered {dateTime(device.registered_at)}
           </p>
         </div>
         <span className={`flex items-center gap-1.5 text-xs font-bold ${
-          online ? 'text-emerald-400' : 'text-red-400'}`}>
-          <span className={`w-2.5 h-2.5 rounded-full ${online ? 'bg-emerald-500' : 'bg-red-500'}`} />
+          online ? 'text-green-600' : 'text-red-600'}`}>
+          <span className={`w-2.5 h-2.5 rounded-full ${online ? 'bg-green-500' : 'bg-red-500'}`} />
           {device.status.toUpperCase()}
         </span>
       </div>
@@ -112,8 +112,8 @@ function DevicePanel({ device }: { device: Device }) {
           ['Satellites', device.last_satellites ?? '—'],
           ['RSSI', device.last_rssi != null ? `${device.last_rssi} dBm` : '—'],
         ].map(([label, value]) => (
-          <div key={label as string} className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
+          <div key={label as string} className="bg-ground border border-ground-line rounded-lg p-2.5">
+            <p className="text-[10px] uppercase tracking-wider text-ink-soft">{label}</p>
             <p className="font-bold tabular-nums mt-0.5">{value}</p>
           </div>
         ))}
@@ -126,8 +126,8 @@ function DevicePanel({ device }: { device: Device }) {
           { label: 'Free heap · 24 h', values: hb.map(h => h.free_heap), color: '#34d399' },
           { label: 'Battery V · 24 h', values: hb.map(h => h.battery_v), color: '#f59e0b' },
         ].map(s => (
-          <div key={s.label} className="bg-slate-950 border border-slate-800 rounded-lg p-2.5">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-1.5">{s.label}</p>
+          <div key={s.label} className="bg-ground border border-ground-line rounded-lg p-2.5">
+            <p className="text-[10px] uppercase tracking-wider text-ink-soft mb-1.5">{s.label}</p>
             <Sparkline values={s.values} color={s.color} />
           </div>
         ))}
@@ -146,10 +146,10 @@ export default function Devices() {
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
       <div className="max-w-5xl mx-auto p-5 space-y-4">
         <h2 className="font-bold">Registered devices</h2>
-        {isLoading && <p className="text-slate-500 text-sm">Loading…</p>}
+        {isLoading && <p className="text-ink-soft text-sm">Loading…</p>}
         {(devices ?? []).map(d => <DevicePanel key={d.id} device={d} />)}
         {devices && devices.length === 0 && (
-          <div className="panel p-10 text-center text-slate-500 text-sm">
+          <div className="panel p-10 text-center text-ink-soft text-sm">
             No devices yet — the first event or heartbeat from the ESP32 registers it.
           </div>
         )}

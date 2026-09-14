@@ -1,8 +1,11 @@
 # sentinel-dashboard
 
-The responder console for the Sentinel accident-detection system. It is what
-gets projected during the defence: dark UI, high contrast, readable from the back
-of a room.
+The responder console for the Sentinel accident-detection system.
+
+It uses the same visual language as the Sentinel mobile app — light ground, white
+cards with hairline borders and generous rounding, deep teal as the primary and
+red reserved strictly for emergency actions — so the operator console and the
+driver's phone read as one product.
 
 Every figure on every screen comes from the backend API. There is no seeded data,
 no `Math.random()`, and no placeholder incident anywhere the UI can render one.
@@ -42,6 +45,10 @@ a manoeuvre or impact artifact, not a crash pulse."* Plus a map inset, a
 detected → received → inference latency breakdown, the dispatch timeline, and the
 acknowledge / dispatch / resolve / false-alarm actions.
 
+**Fleet** (`/fleet`) — every emergency unit, its live status, and where it is
+stationed, on one map of Greater Accra. Counts of available / on a call / out of
+service, filters by service type, and a form to register new units.
+
 **History & Analytics** (`/analytics`) — filterable table with CSV export;
 detections over time by severity; `label_source` distribution (how often the
 physics gate overrode the model); peak-g histogram with the 2–7 g real-crash band
@@ -50,6 +57,21 @@ shaded; end-to-end latency distribution.
 **Devices** (`/devices`) — registered devices, 24 h sparklines for satellites,
 RSSI, free heap and battery, and emergency-contact CRUD shared with the Sentinel
 app's driver role.
+
+### Dispatching units
+
+The incident detail screen carries a dispatch panel listing available units
+**ranked by road travel time to the scene, not straight-line distance** — the
+nearest unit as the crow flies is routinely not the fastest once Accra's ring
+roads and the Korle lagoon are taken into account. The fastest unit of each
+service the severity calls for is flagged FASTEST, ETAs are colour-coded, and
+hovering a candidate draws its actual road route on the map in that service's
+colour. Once dispatched, a unit moves to the top of the panel with controls to
+mark it en route, on scene, or cleared — each writing to the incident timeline.
+
+Routes that came from a real road router are drawn solid; when routing is
+unavailable the ETA is a marked estimate and its route is drawn dashed and
+labelled "est.", so a guess never looks like a road route.
 
 ### Raw vs filtered peak
 
@@ -72,10 +94,13 @@ dashboard.
 ## Map
 
 MapLibre GL against keyless OpenStreetMap raster tiles — no Mapbox token to
-expire or rate-limit mid-defence. OSM tiles are light, so `.maplibregl-canvas` is
-inverted in CSS for the dark look; markers are DOM siblings of the canvas and
-keep their true severity colours. (CARTO's dark basemap was tried first and
-rejected: it now watermarks free tiles with "API KEY REQUIRED".)
+expire or rate-limit mid-defence. (CARTO's basemap was tried first and rejected:
+it now watermarks its free tiles with "API KEY REQUIRED".) The console theme is
+light, so OSM's own tiles are used as-is.
+
+Incident pins are coloured by severity; unit pins carry a two-letter service
+glyph in the service colour. Route lines are drawn from a GeoJSON source with a
+white casing beneath so they stay legible over busy streets.
 
 ## Stack
 
@@ -84,10 +109,14 @@ React 18 · Vite · TypeScript · Tailwind · MapLibre GL · Recharts ·
 
 ```
 src/
-  lib/      api.ts  ws.ts  live.tsx  format.ts  types.ts
-  components/ TopBar  IncidentCard  MapView  WaveformChart  Sparkline
-              SeverityChip  StatusBadge
-  screens/  LiveOps  IncidentDetail  Analytics  Devices
+  lib/      api.ts  ws.ts  live.tsx  format.ts  units.ts  types.ts
+  components/ TopBar  IncidentCard  MapView  WaveformChart  DispatchPanel
+              Sparkline  SeverityChip  StatusBadge
+  screens/  LiveOps  IncidentDetail  Fleet  Analytics  Devices
 ```
+
+Theme tokens (`ink`, `ground`, `brand`, `sev`, `unit`) live in
+`tailwind.config.js`; `.panel` and `.panel-brand` in `index.css` are the card
+surfaces.
 
 `npm run build` typechecks (`tsc`) and bundles.

@@ -1,7 +1,8 @@
 // REST client. Every request carries the shared X-API-Key (see .env.example).
 import type {
-  Contact, Device, Heartbeat, Incident, IncidentDetail, IncidentPage,
-  IncidentWindow, MlHealth, StatsSummary,
+  Contact, Device, DispatchOptions, Heartbeat, Incident, IncidentDetail,
+  IncidentPage, IncidentWindow, MlHealth, StatsSummary, Unit, UnitStatus,
+  UnitType,
 } from './types'
 
 export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
@@ -67,6 +68,26 @@ export const api = {
   resolve: (id: string, actor: string, outcome: 'resolved' | 'false_alarm', note?: string) =>
     request<Incident>(`/api/v1/incidents/${id}/resolve`,
       { method: 'POST', body: JSON.stringify({ actor, outcome, note }) }),
+
+  // ── Response units / dispatch ─────────────────────────────────────────────
+  units: () => request<Unit[]>(`/api/v1/units`),
+  registerUnit: (u: {
+    call_sign: string; unit_type: UnitType; station_name: string
+    home_lat: number; home_lon: number; crew_size?: number; contact_phone?: string
+  }) => request<Unit>(`/api/v1/units`, { method: 'POST', body: JSON.stringify(u) }),
+  updateUnit: (callSign: string, patch: Partial<Unit>) =>
+    request<Unit>(`/api/v1/units/${callSign}`,
+      { method: 'PATCH', body: JSON.stringify(patch) }),
+  deleteUnit: (callSign: string) =>
+    request<void>(`/api/v1/units/${callSign}`, { method: 'DELETE' }),
+  dispatchOptions: (incidentId: string) =>
+    request<DispatchOptions>(`/api/v1/incidents/${incidentId}/dispatch-options`),
+  assignUnit: (incidentId: string, call_sign: string, actor: string, note?: string) =>
+    request<Incident>(`/api/v1/incidents/${incidentId}/assign-unit`,
+      { method: 'POST', body: JSON.stringify({ call_sign, actor, note }) }),
+  setUnitStatus: (callSign: string, status: UnitStatus, actor: string, note?: string) =>
+    request<Unit>(`/api/v1/units/${callSign}/status`,
+      { method: 'POST', body: JSON.stringify({ status, actor, note }) }),
 
   contacts: (deviceId: string) => request<Contact[]>(`/api/v1/devices/${deviceId}/contacts`),
   addContact: (deviceId: string, c: Omit<Contact, 'id' | 'device_id'>) =>

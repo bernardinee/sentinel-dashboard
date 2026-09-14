@@ -125,8 +125,56 @@ export interface Contact {
   active: boolean
 }
 
+// ── Response units / dispatch ───────────────────────────────────────────────
+
+export type UnitType = 'AMBULANCE' | 'FIRE' | 'POLICE' | 'RESCUE'
+export type UnitStatus =
+  | 'available' | 'dispatched' | 'en_route' | 'on_scene' | 'out_of_service'
+
+export interface Unit {
+  id: string
+  call_sign: string
+  unit_type: UnitType
+  station_name: string
+  home_lat: number
+  home_lon: number
+  current_lat: number | null
+  current_lon: number | null
+  status: UnitStatus
+  crew_size: number | null
+  contact_phone: string | null
+  assigned_incident_id: string | null
+  active: boolean
+  last_update: string
+}
+
+export interface RouteInfo {
+  distance_km: number
+  duration_min: number
+  geometry: [number, number][]
+  source: 'osrm' | 'straight_line'
+}
+
+export interface DispatchOption {
+  unit: Unit
+  route: RouteInfo
+  eta_min: number
+  recommended: boolean
+}
+
+export interface DispatchOptions {
+  incident_id: string
+  incident_lat: number
+  incident_lon: number
+  required_types: UnitType[]
+  options: DispatchOption[]
+  routing_source: string
+  note: string | null
+}
+
 export interface WsEnvelope {
-  type: 'incident.created' | 'incident.updated' | 'device_status' | 'ping'
+  type: 'incident.created' | 'incident.updated' | 'device_status'
+      | 'unit.updated' | 'ping'
   at: string
   data: Record<string, unknown>
 }

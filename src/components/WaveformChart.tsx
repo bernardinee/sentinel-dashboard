@@ -57,15 +57,15 @@ export default function WaveformChart({ window: w }: { window: IncidentWindow })
       <div className="flex items-center justify-between mb-2">
         <div>
           <h3 className="font-semibold text-sm">Captured IMU window</h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-ink-soft">
             {w.ax.length} samples @ {w.fs_hz} Hz · impact-centred · raw stored samples, unfiltered
           </p>
         </div>
-        <div className="flex rounded-lg overflow-hidden border border-slate-700 text-xs">
+        <div className="flex rounded-lg overflow-hidden border border-ground-line text-xs">
           {(['magnitude', 'axes'] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
               className={`px-3 py-1.5 font-medium ${mode === m
-                ? 'bg-slate-700 text-slate-100' : 'bg-slate-900 text-slate-400 hover:text-slate-200'}`}>
+                ? 'bg-brand-700 text-ink' : 'bg-ground-card text-ink-soft hover:text-ink'}`}>
               {m === 'magnitude' ? 'Resultant |a|' : 'Per-axis'}
             </button>
           ))}
@@ -75,13 +75,13 @@ export default function WaveformChart({ window: w }: { window: IncidentWindow })
       <div className="h-72">
         <ResponsiveContainer>
           <LineChart data={rows} margin={{ top: 12, right: 16, bottom: 4, left: -8 }}>
-            <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-            <XAxis dataKey="t" stroke="#475569" fontSize={11} interval={49} tickMargin={4}
-              label={{ value: 'time (s)', position: 'insideBottomRight', offset: -2, fill: '#64748b', fontSize: 11 }} />
-            <YAxis stroke="#475569" fontSize={11}
-              label={{ value: 'g', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 11 }} />
+            <CartesianGrid stroke="#e6e8ec" strokeDasharray="3 3" />
+            <XAxis dataKey="t" stroke="#9ca3af" fontSize={11} interval={49} tickMargin={4}
+              label={{ value: 'time (s)', position: 'insideBottomRight', offset: -2, fill: '#6b7280', fontSize: 11 }} />
+            <YAxis stroke="#9ca3af" fontSize={11}
+              label={{ value: 'g', angle: -90, position: 'insideLeft', fill: '#6b7280', fontSize: 11 }} />
             <Tooltip
-              contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }}
+              contentStyle={{ background: '#ffffff', border: '1px solid #e6e8ec', borderRadius: 8, fontSize: 12 }}
               labelFormatter={(t) => `t = ${t} s`} />
             {mode === 'magnitude' && excursion && (
               <ReferenceArea x1={rows[excursion.start].t} x2={rows[excursion.end].t}
@@ -107,13 +107,13 @@ export default function WaveformChart({ window: w }: { window: IncidentWindow })
         </ResponsiveContainer>
       </div>
       {mode === 'axes' && (
-        <div className="flex gap-4 text-[11px] text-slate-400 mt-1">
+        <div className="flex gap-4 text-[11px] text-ink-soft mt-1">
           <span><span className="inline-block w-2.5 h-2.5 rounded-sm mr-1" style={{ background: '#38bdf8' }} />ax</span>
           <span><span className="inline-block w-2.5 h-2.5 rounded-sm mr-1" style={{ background: '#a78bfa' }} />ay</span>
           <span><span className="inline-block w-2.5 h-2.5 rounded-sm mr-1" style={{ background: '#34d399' }} />az</span>
         </div>
       )}
-      <p className="text-[10px] text-slate-600 mt-2 leading-relaxed">
+      <p className="text-[10px] text-ink-soft mt-2 leading-relaxed">
         This plot is the raw window as captured. The crash-signature figures beside it are
         computed on the same window after a zero-phase 20 Hz low-pass filter, applied to match
         the model's training pipeline — so the filtered peak can differ slightly from the raw

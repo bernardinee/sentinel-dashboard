@@ -12,7 +12,7 @@ import { csvExport, dateTime } from '../lib/format'
 import SeverityChip from '../components/SeverityChip'
 import StatusBadge from '../components/StatusBadge'
 
-const TT = { background: '#0f172a', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }
+const TT = { background: '#ffffff', border: '1px solid #e6e8ec', borderRadius: 8, fontSize: 12 }
 
 function Card({ title, sub, children }: {
   title: string; sub?: string; children: React.ReactNode
@@ -20,7 +20,7 @@ function Card({ title, sub, children }: {
   return (
     <div className="panel p-4">
       <h3 className="font-semibold text-sm">{title}</h3>
-      {sub && <p className="text-[11px] text-slate-500 mb-2">{sub}</p>}
+      {sub && <p className="text-[11px] text-ink-soft mb-2">{sub}</p>}
       {children}
     </div>
   )
@@ -97,7 +97,7 @@ export default function Analytics() {
     })),
     `sentinel-incidents-${new Date().toISOString().slice(0, 10)}.csv`)
 
-  const sel = 'bg-slate-950 border border-slate-700 rounded-lg px-2 py-1.5 text-xs'
+  const sel = 'bg-ground border border-ground-line rounded-xl px-2.5 py-1.5 text-xs'
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
@@ -112,7 +112,7 @@ export default function Analytics() {
             ['Mean end-to-end', stats?.mean_end_to_end_s != null ? `${stats.mean_end_to_end_s} s` : '—'],
           ].map(([label, value]) => (
             <div key={label as string} className="panel p-3">
-              <p className="text-[10px] uppercase tracking-wider text-slate-500">{label}</p>
+              <p className="text-[10px] uppercase tracking-wider text-ink-soft">{label}</p>
               <p className="text-2xl font-bold tabular-nums mt-1">{value ?? '—'}</p>
             </div>
           ))}
@@ -123,9 +123,9 @@ export default function Analytics() {
             <div className="h-52">
               <ResponsiveContainer>
                 <BarChart data={byDay}>
-                  <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                  <XAxis dataKey="day" stroke="#475569" fontSize={10} />
-                  <YAxis stroke="#475569" fontSize={10} allowDecimals={false} />
+                  <CartesianGrid stroke="#e6e8ec" strokeDasharray="3 3" />
+                  <XAxis dataKey="day" stroke="#9ca3af" fontSize={10} />
+                  <YAxis stroke="#9ca3af" fontSize={10} allowDecimals={false} />
                   <Tooltip contentStyle={TT} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="Normal" stackId="s" fill="#22c55e" />
@@ -140,9 +140,9 @@ export default function Analytics() {
             <div className="h-52">
               <ResponsiveContainer>
                 <BarChart data={labelSourceData} layout="vertical">
-                  <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                  <XAxis type="number" stroke="#475569" fontSize={10} allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" stroke="#475569" fontSize={11} width={130} />
+                  <CartesianGrid stroke="#e6e8ec" strokeDasharray="3 3" />
+                  <XAxis type="number" stroke="#9ca3af" fontSize={10} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" stroke="#9ca3af" fontSize={11} width={130} />
                   <Tooltip contentStyle={TT} />
                   <Bar dataKey="count" fill="#38bdf8" />
                 </BarChart>
@@ -154,9 +154,9 @@ export default function Analytics() {
             <div className="h-52">
               <ResponsiveContainer>
                 <BarChart data={peakHist}>
-                  <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                  <XAxis dataKey="g" stroke="#475569" fontSize={10} interval={3} />
-                  <YAxis stroke="#475569" fontSize={10} allowDecimals={false} />
+                  <CartesianGrid stroke="#e6e8ec" strokeDasharray="3 3" />
+                  <XAxis dataKey="g" stroke="#9ca3af" fontSize={10} interval={3} />
+                  <YAxis stroke="#9ca3af" fontSize={10} allowDecimals={false} />
                   <Tooltip contentStyle={TT} />
                   {/* VZCrash: 99.9% of real crashes fall inside this band */}
                   <ReferenceArea x1="2.0" x2="7.0" fill="#22c55e" fillOpacity={0.08}
@@ -175,9 +175,9 @@ export default function Analytics() {
             <div className="h-52">
               <ResponsiveContainer>
                 <BarChart data={latencyHist}>
-                  <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-                  <XAxis dataKey="s" stroke="#475569" fontSize={10} />
-                  <YAxis stroke="#475569" fontSize={10} allowDecimals={false} />
+                  <CartesianGrid stroke="#e6e8ec" strokeDasharray="3 3" />
+                  <XAxis dataKey="s" stroke="#9ca3af" fontSize={10} />
+                  <YAxis stroke="#9ca3af" fontSize={10} allowDecimals={false} />
                   <Tooltip contentStyle={TT} />
                   <Bar dataKey="count" fill="#34d399" />
                 </BarChart>
@@ -188,7 +188,7 @@ export default function Analytics() {
 
         {/* filterable table */}
         <div className="panel">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-ground-line">
             <h3 className="font-semibold text-sm flex-1">Incident history</h3>
             <select value={severity} onChange={e => setSeverity(e.target.value)} className={sel}>
               <option value="">All severities</option>
@@ -202,22 +202,22 @@ export default function Analytics() {
                 <option key={s} value={s}>{s}</option>)}
             </select>
             <button onClick={exportCsv}
-              className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold">
+              className="px-3 py-1.5 rounded-lg bg-brand-700 hover:bg-brand-800 text-xs font-semibold">
               Export CSV
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="text-left text-slate-500 border-b border-slate-800">
+                <tr className="text-left text-ink-soft border-b border-ground-line">
                   {['Received', 'Event', 'Severity', 'Conf.', 'Peak g', 'Source', 'Status'].map(h =>
                     <th key={h} className="px-4 py-2 font-medium">{h}</th>)}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-ground-line">
                 {incidents.map(i => (
-                  <tr key={i.id} className="hover:bg-slate-800/40">
-                    <td className="px-4 py-2 tabular-nums text-slate-400">{dateTime(i.received_at)}</td>
+                  <tr key={i.id} className="hover:bg-ground/40">
+                    <td className="px-4 py-2 tabular-nums text-ink-soft">{dateTime(i.received_at)}</td>
                     <td className="px-4 py-2">
                       <Link to={`/incidents/${i.id}`} className="text-sky-400 hover:text-sky-300">
                         {i.event_id}
@@ -230,12 +230,12 @@ export default function Analytics() {
                       {i.confidence != null ? `${(i.confidence * 100).toFixed(0)}%` : '—'}
                     </td>
                     <td className="px-4 py-2 tabular-nums">{i.peak_g?.toFixed(2) ?? '—'}</td>
-                    <td className="px-4 py-2 text-slate-400">{i.label_source ?? 'pending'}</td>
+                    <td className="px-4 py-2 text-ink-soft">{i.label_source ?? 'pending'}</td>
                     <td className="px-4 py-2"><StatusBadge status={i.status} /></td>
                   </tr>
                 ))}
                 {incidents.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-500">
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-ink-soft">
                     No incidents match the filters.
                   </td></tr>
                 )}

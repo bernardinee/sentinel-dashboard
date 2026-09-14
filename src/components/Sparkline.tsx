@@ -7,7 +7,7 @@ export default function Sparkline({ values, width = 140, height = 32, color = '#
 }) {
   const nums = values.filter((v): v is number => v != null)
   if (nums.length < 2) {
-    return <span className="text-[10px] text-slate-600">no data</span>
+    return <span className="text-[10px] text-ink-faint">no data</span>
   }
   const min = Math.min(...nums)
   const max = Math.max(...nums)

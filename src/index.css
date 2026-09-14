@@ -9,59 +9,85 @@ html, body, #root {
 }
 
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  @apply bg-ground text-ink antialiased;
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
+/* Card surface — white, hairline border, soft lift. Matches the mobile app. */
 .panel {
-  @apply bg-slate-900 border border-slate-800 rounded-xl;
+  @apply bg-ground-card border border-ground-line rounded-xl2 shadow-card;
+}
+
+/* Deep-teal hero card (the app's "Protection active" block). */
+.panel-brand {
+  @apply rounded-xl2 text-white;
+  background: linear-gradient(135deg, #0d7360 0%, #0b5f50 100%);
+}
+
+/* Small tinted icon tile used beside list rows. */
+.icon-tile {
+  @apply w-9 h-9 rounded-xl flex items-center justify-center shrink-0;
+}
+
+.section-label {
+  @apply text-[13px] font-semibold text-ink;
 }
 
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
-.scrollbar-thin::-webkit-scrollbar { width: 5px; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar { width: 6px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
-  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); }
+  70%  { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
-.pulse-unacked {
-  animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
+.pulse-unacked { animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
-/* Dark basemap: OSM ships light raster tiles and needs no API key, so the
-   tile canvas is inverted here. Markers/popups are DOM siblings of the canvas
-   and are NOT inverted, so severity colours stay true. */
-.maplibregl-canvas {
-  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.92) saturate(0.8);
-}
-
-/* map pin */
+/* ── Map ──────────────────────────────────────────────────────────────────
+   The theme is light, so OSM's own tiles are used as-is — no canvas inversion.
+   Markers are DOM elements layered over the canvas.                        */
 .sentinel-pin {
   width: 18px;
   height: 18px;
   border-radius: 9999px;
-  border: 2.5px solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.35);
+  cursor: pointer;
+}
+
+.unit-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(16, 24, 40, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   cursor: pointer;
 }
 
 .maplibregl-popup-content {
-  background: #0f172a !important;
-  color: #e2e8f0 !important;
-  border: 1px solid #334155;
-  border-radius: 10px;
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #e6e8ec;
+  border-radius: 12px;
   padding: 10px 12px;
   font-size: 12px;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.12);
 }
 .maplibregl-popup-tip { display: none; }
 .maplibregl-ctrl-attrib {
-  background: rgba(15, 23, 42, 0.8) !important;
-  color: #64748b !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: #6b7280 !important;
   font-size: 10px;
 }
-.maplibregl-ctrl-attrib a { color: #94a3b8 !important; }
+.maplibregl-ctrl-attrib a { color: #6b7280 !important; }
