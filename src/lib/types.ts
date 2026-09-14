@@ -167,7 +167,10 @@ export interface DispatchOptions {
   incident_lat: number
   incident_lon: number
   required_types: UnitType[]
+  /** Units free to be sent, fastest first. */
   options: DispatchOption[]
+  /** Units already committed to this incident, with their live routes. */
+  responding: DispatchOption[]
   routing_source: string
   note: string | null
 }

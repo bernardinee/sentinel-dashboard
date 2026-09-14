@@ -101,16 +101,12 @@ export default function IncidentDetail() {
   // The alert threshold is model metadata, not per-incident — read it from
   // /ml/health so the explanation quotes the real number.
   const { data: ml } = useQuery({ queryKey: ['mlHealth'], queryFn: api.mlHealth })
-  const { data: units } = useQuery({ queryKey: ['units'], queryFn: api.units })
+  // DispatchPanel owns the units list; the map reads routes from dispatchOptions.
   const { data: options } = useQuery({
     queryKey: ['dispatchOptions', id],
     queryFn: () => api.dispatchOptions(id),
     enabled: !!incident?.lat,
   })
-
-  const assignedUnits = useMemo(
-    () => (units ?? []).filter(u => u.assigned_incident_id === id),
-    [units, id])
 
   // Draw the hovered candidate's route, else the routes of units already sent.
   const { pins, routes } = useMemo(() => {
@@ -138,20 +134,23 @@ export default function IncidentDetail() {
         }],
       }
     }
-    const assignedPins = assignedUnits.map(u => ({
-      id: `u-${u.id}`, lat: u.current_lat ?? u.home_lat, lon: u.current_lon ?? u.home_lon,
-      color: UNIT_COLOR[u.unit_type], label: u.call_sign, sub: u.station_name,
-      kind: 'unit' as const, glyph: u.unit_type.slice(0, 2),
+    // Nothing hovered: show the units actually responding, and their routes.
+    const responding = options?.responding ?? []
+    const respondingPins = responding.map(o => ({
+      id: `u-${o.unit.id}`,
+      lat: o.unit.current_lat ?? o.unit.home_lat,
+      lon: o.unit.current_lon ?? o.unit.home_lon,
+      color: UNIT_COLOR[o.unit.unit_type], label: o.unit.call_sign,
+      sub: `${o.unit.station_name} — ETA ${o.eta_min.toFixed(0)} min`,
+      kind: 'unit' as const, glyph: o.unit.unit_type.slice(0, 2),
     }))
-    const assignedRoutes = (options?.options ?? [])
-      .filter(o => assignedUnits.some(a => a.call_sign === o.unit.call_sign))
-      .map(o => ({
-        geometry: o.route.geometry,
-        color: UNIT_COLOR[o.unit.unit_type],
-        dashed: o.route.source !== 'osrm',
-      }))
-    return { pins: [scene, ...assignedPins], routes: assignedRoutes }
-  }, [incident, preview, assignedUnits, options])
+    const respondingRoutes = responding.map(o => ({
+      geometry: o.route.geometry,
+      color: UNIT_COLOR[o.unit.unit_type],
+      dashed: o.route.source !== 'osrm',
+    }))
+    return { pins: [scene, ...respondingPins], routes: respondingRoutes }
+  }, [incident, preview, options])
 
   if (!incident) return <div className="p-8 text-ink-soft">Loading incident…</div>
 
