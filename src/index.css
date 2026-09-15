@@ -1,8 +1,12 @@
+/* @import must come before every other statement per the CSS spec. Placed
+   after the @tailwind directives it is dropped from the production bundle,
+   which silently unstyles the map controls, popups and attribution — while
+   still looking fine in dev, where Vite serves CSS differently. */
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import 'maplibre-gl/dist/maplibre-gl.css';
 
 html, body, #root {
   height: 100%;
