@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Sentinel">
+  <!-- Rounded tile so the mark stays legible at 16px, where a bare shield
+       silhouette turns to mush. Matches the in-app logo and brand-700. -->
+  <rect width="32" height="32" rx="7" fill="#0d7360"/>
+  <path d="M16 5.5l8.5 3.2v6.4c0 5.3-3.6 9.7-8.5 11.4-4.9-1.7-8.5-6.1-8.5-11.4V8.7L16 5.5z"
+        fill="#ffffff" fill-opacity=".18"/>
+  <path d="M16 5.5l8.5 3.2v6.4c0 5.3-3.6 9.7-8.5 11.4-4.9-1.7-8.5-6.1-8.5-11.4V8.7L16 5.5z"
+        fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linejoin="round"/>
+  <path d="M14.6 10.8h2.8v3.4h3.4v2.8h-3.4v3.4h-2.8v-3.4h-3.4v-2.8h3.4z" fill="#ffffff"/>
+</svg>

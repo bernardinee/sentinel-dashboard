@@ -1,4 +1,5 @@
-// REST client. Every request carries the shared X-API-Key (see .env.example).
+// REST client. Every request carries the signed-in responder's Bearer token.
+import { currentAccessToken } from './auth'
 import type {
   Contact, Device, DispatchOptions, Heartbeat, Incident, IncidentDetail,
   IncidentPage, IncidentWindow, MlHealth, StatsSummary, Unit, UnitStatus,
@@ -7,14 +8,20 @@ import type {
 
 export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 export const WS_URL: string = import.meta.env.VITE_WS_URL ?? 'ws://localhost:8080'
-export const API_KEY: string = import.meta.env.VITE_API_KEY ?? ''
+
+// No API key is shipped to the browser any more. Every request carries the
+// signed-in responder's short-lived access token, which lives in memory only.
+// The old VITE_API_KEY was readable by anyone who opened the bundle, which
+// handed them full dispatch control.
+export class UnauthorizedError extends Error {}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = currentAccessToken()
   const resp = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
   })
@@ -24,6 +31,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       const body = await resp.json()
       detail = body.detail ?? JSON.stringify(body)
     } catch { /* keep statusText */ }
+    // 401 means the session is gone; surface it as its own type so callers can
+    // bounce to the login screen instead of rendering a scary error.
+    if (resp.status === 401) throw new UnauthorizedError(detail)
     throw new Error(`${resp.status}: ${detail}`)
   }
   if (resp.status === 204) return undefined as T

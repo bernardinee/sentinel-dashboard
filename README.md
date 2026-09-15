@@ -21,10 +21,24 @@ npm run dev            # http://localhost:5173
 ```
 VITE_API_URL=http://localhost:8080
 VITE_WS_URL=ws://localhost:8080        # wss:// in production
-VITE_API_KEY=<same secret as the backend>
 ```
 
-The backend must be running — see the `sentinel-backend` README.
+No API key reaches the browser. Responders sign in with an email and password,
+and the console authenticates with their short-lived access token.
+
+The backend must be running — see the `sentinel-backend` README, and create an
+account with `scripts/create_responder.py` before your first sign-in.
+
+## Sessions
+
+The access token lives **in memory only**, so a stored XSS payload cannot read
+it and it dies with the tab. The refresh token is persisted so a reload does not
+force a new sign-in; it is single-use, rotates on every exchange, and the backend
+revokes the whole family if a rotated token is ever replayed. Sign-out revokes
+it server-side rather than just forgetting it locally.
+
+The WebSocket authenticates with the same access token as a query parameter,
+because browsers cannot set headers on a WebSocket handshake.
 
 ## Screens
 
@@ -109,10 +123,10 @@ React 18 · Vite · TypeScript · Tailwind · MapLibre GL · Recharts ·
 
 ```
 src/
-  lib/      api.ts  ws.ts  live.tsx  format.ts  units.ts  types.ts
+  lib/      api.ts  auth.tsx  ws.ts  live.tsx  format.ts  units.ts  types.ts
   components/ TopBar  IncidentCard  MapView  WaveformChart  DispatchPanel
               Sparkline  SeverityChip  StatusBadge
-  screens/  LiveOps  IncidentDetail  Fleet  Analytics  Devices
+  screens/  Login  LiveOps  IncidentDetail  Fleet  Analytics  Devices
 ```
 
 Theme tokens (`ink`, `ground`, `brand`, `sev`, `unit`) live in
