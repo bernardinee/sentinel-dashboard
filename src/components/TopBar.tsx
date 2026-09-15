@@ -113,8 +113,8 @@ export default function TopBar() {
     // No overflow-hidden here: it clips the account dropdown, which is
     // absolutely positioned inside. Items are shrink-0 + whitespace-nowrap and
     // the metrics hide at narrow widths, so nothing wraps anyway.
-    <header className="relative z-30 h-16 shrink-0 bg-ground-card border-b border-ground-line
-                       flex items-center px-4 gap-4 whitespace-nowrap">
+    <header className="relative z-30 h-14 lg:h-16 shrink-0 bg-ground-card border-b border-ground-line
+                       flex items-center px-3 lg:px-4 gap-3 lg:gap-4 whitespace-nowrap">
       <div className="flex items-center gap-2.5 shrink-0">
         <div className="w-9 h-9 rounded-xl bg-brand-700 flex items-center justify-center shrink-0">
           <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="currentColor">
@@ -122,13 +122,13 @@ export default function TopBar() {
             <path d="M11 8h2v3h3v2h-3v3h-2v-3H8v-2h3V8z" fill="#0d7360" />
           </svg>
         </div>
-        <div className="leading-tight hidden sm:block">
+        <div className="leading-tight">
           <p className="font-bold text-[15px] text-ink">Sentinel</p>
           <p className="text-[10px] text-ink-soft">Dispatch console</p>
         </div>
       </div>
 
-      <nav className="flex items-center gap-1 shrink-0">
+      <nav className="hidden lg:flex items-center gap-1 shrink-0">
         {NAV.map(n => (
           <NavLink key={n.to} to={n.to} end={n.to === '/'}
             className={({ isActive }) =>
@@ -152,10 +152,11 @@ export default function TopBar() {
         <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-ground shrink-0"
           title="WebSocket connection">
           <span className={`w-2 h-2 rounded-full ${ws.dot}`} />
-          <span className={`text-xs font-semibold hidden sm:inline ${ws.cls}`}>{ws.text}</span>
+          <span className={`text-xs font-semibold ${ws.cls}`}>{ws.text}</span>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0"
+          aria-label={mlOk ? "ML model ready" : "ML model unavailable"}
           title={mlOk ? `${ml?.model} · ${ml?.taxonomy} · threshold ${ml?.crash_alert_threshold}`
                       : ml?.error ?? 'ML API unreachable'}>
           <span className={`w-2 h-2 rounded-full ${mlOk ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />

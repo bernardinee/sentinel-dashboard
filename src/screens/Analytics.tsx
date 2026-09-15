@@ -101,9 +101,9 @@ export default function Analytics() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-      <div className="max-w-6xl mx-auto p-5 space-y-4">
+      <div className="max-w-6xl mx-auto p-3 sm:p-5 space-y-3 sm:space-y-4">
         {/* headline stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-3">
           {[
             ['Total detections', stats?.total_incidents],
             ['Last 24 h', stats?.last_24h],
@@ -188,8 +188,8 @@ export default function Analytics() {
 
         {/* filterable table */}
         <div className="panel">
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-ground-line">
-            <h3 className="font-semibold text-sm flex-1">Incident history</h3>
+          <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 border-b border-ground-line flex-wrap">
+            <h3 className="font-semibold text-sm flex-1 min-w-full sm:min-w-0">Incident history</h3>
             <select value={severity} onChange={e => setSeverity(e.target.value)} className={sel}>
               <option value="">All severities</option>
               <option value="0">Normal</option>

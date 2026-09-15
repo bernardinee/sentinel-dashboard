@@ -40,7 +40,7 @@ export default function Account() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin bg-ground">
-      <div className="max-w-xl mx-auto p-5 space-y-4">
+      <div className="max-w-xl mx-auto p-3 sm:p-5 space-y-3 sm:space-y-4">
         <div>
           <h2 className="text-lg font-bold text-ink">Your account</h2>
           <p className="text-xs text-ink-soft">Signed in as {user?.email}</p>

@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import TopBar from './components/TopBar'
+import BottomNav from './components/BottomNav'
 import LiveOps from './screens/LiveOps'
 import IncidentDetail from './screens/IncidentDetail'
 import Analytics from './screens/Analytics'
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/team" element={<Team />} />
           <Route path="/account" element={<Account />} />
         </Routes>
+        <BottomNav />
       </div>
     </LiveProvider>
   )

@@ -54,17 +54,17 @@ export default function WaveformChart({ window: w }: { window: IncidentWindow })
 
   return (
     <div className="panel p-4">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
         <div>
           <h3 className="font-semibold text-sm">Captured IMU window</h3>
           <p className="text-xs text-ink-soft">
             {w.ax.length} samples @ {w.fs_hz} Hz · impact-centred · raw stored samples, unfiltered
           </p>
         </div>
-        <div className="flex rounded-lg overflow-hidden border border-ground-line text-xs">
+        <div className="flex rounded-lg overflow-hidden border border-ground-line text-xs shrink-0 self-start">
           {(['magnitude', 'axes'] as const).map(m => (
             <button key={m} onClick={() => setMode(m)}
-              className={`px-3 py-1.5 font-medium ${mode === m
+              className={`px-3 py-1.5 font-medium whitespace-nowrap ${mode === m
                 ? 'bg-brand-700 text-ink' : 'bg-ground-card text-ink-soft hover:text-ink'}`}>
               {m === 'magnitude' ? 'Resultant |a|' : 'Per-axis'}
             </button>
@@ -72,7 +72,7 @@ export default function WaveformChart({ window: w }: { window: IncidentWindow })
         </div>
       </div>
 
-      <div className="h-72">
+      <div className="h-52 sm:h-72">
         <ResponsiveContainer>
           <LineChart data={rows} margin={{ top: 12, right: 16, bottom: 4, left: -8 }}>
             <CartesianGrid stroke="#e6e8ec" strokeDasharray="3 3" />

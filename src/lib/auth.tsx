@@ -58,6 +58,25 @@ export function currentAccessToken(): string | null {
   return accessToken
 }
 
+/** In-flight refresh, shared by every caller.
+ *
+ *  Refresh tokens are single-use and rotate, and the backend treats a replayed
+ *  one as theft and revokes the whole family. So two simultaneous exchanges
+ *  with the same token do not merely race — they sign the user out. That
+ *  happens easily: React StrictMode double-invokes effects in development, and
+ *  two tabs restoring at once would do it in production. Everyone therefore
+ *  awaits the same promise instead of starting a second exchange. */
+let inflightRefresh: Promise<TokenResponse> | null = null
+
+function refreshOnce(token: string): Promise<TokenResponse> {
+  if (!inflightRefresh) {
+    inflightRefresh = postJson<TokenResponse>('/api/v1/auth/refresh',
+      { refresh_token: token })
+      .finally(() => { inflightRefresh = null })
+  }
+  return inflightRefresh
+}
+
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   const resp = await fetch(`${API_URL}${path}`, {
     method: 'POST',
@@ -110,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try { stored = localStorage.getItem(REFRESH_KEY) } catch { /* private mode */ }
     if (!stored) { clearSession(); return }
     try {
-      adopt(await postJson<TokenResponse>('/api/v1/auth/refresh', { refresh_token: stored }))
+      adopt(await refreshOnce(stored))
     } catch {
       // Expired, revoked, or replayed — the only safe response is to sign out.
       clearSession()
@@ -125,8 +144,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try { stored = localStorage.getItem(REFRESH_KEY) } catch { /* private mode */ }
       if (stored) {
         try {
-          const t = await postJson<TokenResponse>('/api/v1/auth/refresh',
-            { refresh_token: stored })
+          const t = await refreshOnce(stored)
+          // StrictMode remounts this effect; adopting twice is harmless
+          // because both calls resolve from the same exchange.
           if (!cancelled) adopt(t)
         } catch {
           if (!cancelled) clearSession()

@@ -97,12 +97,12 @@ function UnitRow({ unit }: { unit: Unit }) {
   const busy = ['dispatched', 'en_route', 'on_scene'].includes(unit.status)
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-ground-line last:border-0">
+    <div className="flex items-center gap-3 px-3 sm:px-4 py-3 border-b border-ground-line last:border-0 flex-wrap">
       <div className={`icon-tile ${UNIT_TINT[unit.unit_type]}`}>
         <UnitIcon type={unit.unit_type} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="font-semibold text-sm text-ink">{unit.call_sign}</p>
+        <p className="font-semibold text-sm text-ink whitespace-nowrap">{unit.call_sign}</p>
         <p className="text-[11px] text-ink-soft truncate">
           {UNIT_LABEL[unit.unit_type]} · {unit.station_name}
           {unit.crew_size ? ` · crew ${unit.crew_size}` : ''}
@@ -110,7 +110,7 @@ function UnitRow({ unit }: { unit: Unit }) {
       </div>
       {unit.assigned_incident_id && (
         <Link to={`/incidents/${unit.assigned_incident_id}`}
-          className="text-[11px] font-semibold text-brand-700 hover:underline shrink-0">
+          className="text-[11px] font-semibold text-brand-700 hover:underline shrink-0 py-2 sm:py-0">
           View incident
         </Link>
       )}
@@ -163,7 +163,7 @@ export default function Fleet() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-      <div className="max-w-6xl mx-auto p-5 space-y-4">
+      <div className="max-w-6xl mx-auto p-3 sm:p-5 space-y-3 sm:space-y-4">
 
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
@@ -195,7 +195,7 @@ export default function Fleet() {
         {adding && <AddUnitForm onDone={() => setAdding(false)} />}
 
         <div className="panel overflow-hidden">
-          <div className="h-[320px]">
+          <div className="h-[240px] sm:h-[320px]">
             <MapView pins={pins} fitAll zoom={11} />
           </div>
           <div className="flex items-center gap-4 px-4 py-2.5 border-t border-ground-line flex-wrap">
@@ -217,7 +217,7 @@ export default function Fleet() {
             <h3 className="section-label flex-1">Units ({shown.length})</h3>
             {(['ALL', ...TYPES] as const).map(t => (
               <button key={t} onClick={() => setFilter(t)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors ${
+                className={`px-3 py-2 sm:px-2.5 sm:py-1 rounded-lg text-[11px] font-semibold transition-colors ${
                   filter === t ? 'bg-brand-700 text-white' : 'bg-ground text-ink-soft hover:text-ink'}`}>
                 {t === 'ALL' ? 'All' : UNIT_LABEL[t]}
               </button>

@@ -159,12 +159,12 @@ export default function IncidentDetail() {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin bg-ground">
-      <div className="max-w-6xl mx-auto p-5 space-y-4">
+      <div className="max-w-6xl mx-auto p-3 sm:p-5 space-y-3 sm:space-y-4">
 
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-ink-soft hover:text-ink text-sm">← Live Ops</Link>
-            <h1 className="font-bold text-ink">{incident.event_id}</h1>
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0">
+            <Link to="/" className="text-ink-soft hover:text-ink text-sm shrink-0 py-2 sm:py-0 -my-2 sm:my-0">← Live Ops</Link>
+            <h1 className="font-bold text-ink text-sm sm:text-base break-all">{incident.event_id}</h1>
             <SeverityChip name={incident.severity_name} pending={incident.classification_pending} big />
             <StatusBadge status={incident.status} />
           </div>
@@ -178,7 +178,7 @@ export default function IncidentDetail() {
         {/* Dispatch: map with the live route, beside the ranked unit list */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="panel overflow-hidden">
-            <div className="h-[360px]">
+            <div className="h-[260px] sm:h-[360px]">
               {incident.lat != null && incident.lon != null ? (
                 <MapView pins={pins} routes={routes} zoom={13}
                   focus={routes.length === 0
@@ -196,7 +196,7 @@ export default function IncidentDetail() {
                 {incident.satellites != null && ` · ${incident.satellites} sats`}
               </span>
               {incident.lat != null && (
-                <a className="text-brand-700 hover:underline font-semibold"
+                <a className="text-brand-700 hover:underline font-semibold py-2 sm:py-0"
                   href={`https://maps.google.com/?q=${incident.lat},${incident.lon}`}
                   target="_blank" rel="noreferrer">Open in Maps ↗</a>
               )}

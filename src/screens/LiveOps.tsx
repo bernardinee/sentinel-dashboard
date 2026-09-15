@@ -85,6 +85,8 @@ function DeviceCard({ device, nowMs }: { device: Device; nowMs: number }) {
 export default function LiveOps() {
   const navigate = useNavigate()
   const nowMs = useNow()
+  // Mobile-only switch; ignored from lg upwards, where both panes are visible.
+  const [view, setView] = useState<'feed' | 'map'>('feed')
   const { newestIncident } = useLive()
 
   const { data: page, isLoading } = useQuery({
@@ -134,9 +136,25 @@ export default function LiveOps() {
     ['dispatched', 'en_route', 'on_scene'].includes(u.status))
 
   return (
-    <div className="flex-1 min-h-0 grid grid-cols-[320px_1fr] xl:grid-cols-[340px_1fr_300px] bg-ground">
+    <div className="flex-1 min-h-0 flex flex-col
+                    lg:grid lg:grid-cols-[320px_1fr] xl:grid-cols-[340px_1fr_300px] bg-ground">
+
+      {/* Mobile only: the feed and the map each need the full width on a
+          phone, so they are switched rather than shown side by side. */}
+      <div className="lg:hidden shrink-0 flex gap-1 p-2 bg-ground-card border-b border-ground-line">
+        {(['feed', 'map'] as const).map(v => (
+          <button key={v} onClick={() => setView(v)}
+            aria-pressed={view === v}
+            className={`flex-1 rounded-xl py-2 text-xs font-semibold transition-colors ${
+              view === v ? 'bg-brand-50 text-brand-700' : 'text-ink-soft'}`}>
+            {v === 'feed' ? `Feed (${activeIncidents.length})` : 'Map'}
+          </button>
+        ))}
+      </div>
+
       {/* Feed */}
-      <section className="border-r border-ground-line flex flex-col min-h-0 bg-ground">
+      <section className={`${view === 'feed' ? 'flex' : 'hidden'} lg:flex
+                          border-r border-ground-line flex-col min-h-0 bg-ground`}>
         <div className="px-4 py-3 flex items-center justify-between">
           <h2 className="section-label">Incident feed</h2>
           <span className="text-[11px] text-ink-soft tabular-nums">
@@ -158,11 +176,25 @@ export default function LiveOps() {
               deviceName={deviceNames[inc.device_id]} nowMs={nowMs}
               assignedUnits={unitsByIncident[inc.id]} />
           ))}
+
+          {/* The right rail only exists at xl, so below that the fleet summary
+              and device health ride along at the end of the feed rather than
+              being unreachable. */}
+          <div className="xl:hidden space-y-3 pt-1">
+            <div className="panel-brand p-4">
+              <p className="font-semibold text-[15px]">Response ready</p>
+              <p className="text-[11px] text-white/75 mt-0.5">
+                {(units ?? []).filter(u => u.status === 'available').length} units available
+                {busyUnits.length > 0 && ` · ${busyUnits.length} responding`}
+              </p>
+            </div>
+            {(devices ?? []).map(d => <DeviceCard key={d.id} device={d} nowMs={nowMs} />)}
+          </div>
         </div>
       </section>
 
       {/* Map */}
-      <section className="relative min-h-0">
+      <section className={`${view === 'map' ? 'block' : 'hidden'} lg:block relative min-h-0 flex-1`}>
         <MapView pins={pins} focus={focus} zoom={12} />
       </section>
 
@@ -199,7 +231,7 @@ export default function LiveOps() {
                     <span className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: UNIT_COLOR[u.unit_type] }} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-ink">{u.call_sign}</p>
+                      <p className="text-xs font-semibold text-ink whitespace-nowrap">{u.call_sign}</p>
                       <p className="text-[10px] text-ink-soft truncate">{UNIT_LABEL[u.unit_type]}</p>
                     </div>
                     <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-semibold ${

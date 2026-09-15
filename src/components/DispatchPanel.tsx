@@ -46,7 +46,7 @@ function OptionRow({ option, actor, incidentId, onHover, disabled }: {
     <div
       onMouseEnter={() => onHover(option)}
       onMouseLeave={() => onHover(null)}
-      className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+      className={`flex items-center gap-2.5 sm:gap-3 p-3 rounded-xl border transition-colors flex-wrap ${
         option.recommended
           ? 'border-brand-200 bg-brand-50/60'
           : 'border-ground-line bg-ground-card hover:border-gray-300'}`}
@@ -57,7 +57,7 @@ function OptionRow({ option, actor, incidentId, onHover, disabled }: {
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-ink">{u.call_sign}</span>
+          <span className="font-semibold text-sm text-ink whitespace-nowrap">{u.call_sign}</span>
           {option.recommended && (
             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md
                              bg-brand-700 text-white">FASTEST</span>
@@ -145,7 +145,7 @@ export default function DispatchPanel({ incident, actor, onPreview }: {
                 <UnitIcon type={u.unit_type} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-ink">{u.call_sign}</p>
+                <p className="font-semibold text-sm text-ink whitespace-nowrap">{u.call_sign}</p>
                 <p className="text-[11px] text-ink-soft truncate">{u.station_name}</p>
               </div>
               <span className={`px-2 py-0.5 rounded-lg border text-[11px] font-semibold ${

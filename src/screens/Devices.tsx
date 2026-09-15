@@ -62,7 +62,7 @@ function Contacts({ device }: { device: Device }) {
           </p>
         )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input placeholder="Name" value={draft.name} className={`${input} flex-1`}
           onChange={e => setDraft({ ...draft, name: e.target.value })} />
         <input placeholder="+233…" value={draft.phone} className={`${input} w-32`}
@@ -144,7 +144,7 @@ export default function Devices() {
   })
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
-      <div className="max-w-5xl mx-auto p-5 space-y-4">
+      <div className="max-w-5xl mx-auto p-3 sm:p-5 space-y-3 sm:space-y-4">
         <h2 className="font-bold">Registered devices</h2>
         {isLoading && <p className="text-ink-soft text-sm">Loading…</p>}
         {(devices ?? []).map(d => <DevicePanel key={d.id} device={d} />)}
