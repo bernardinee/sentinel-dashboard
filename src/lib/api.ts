@@ -2,8 +2,8 @@
 import { currentAccessToken } from './auth'
 import type {
   Contact, Device, DispatchOptions, Heartbeat, Incident, IncidentDetail,
-  IncidentPage, IncidentWindow, MlHealth, StatsSummary, Unit, UnitStatus,
-  UnitType,
+  IncidentPage, IncidentWindow, MlHealth, Responder, StatsSummary, Unit,
+  UnitStatus, UnitType,
 } from './types'
 
 export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
@@ -98,6 +98,15 @@ export const api = {
   setUnitStatus: (callSign: string, status: UnitStatus, actor: string, note?: string) =>
     request<Unit>(`/api/v1/units/${callSign}/status`,
       { method: 'POST', body: JSON.stringify({ status, actor, note }) }),
+
+  // ── Responder team ────────────────────────────────────────────────────────
+  responders: () => request<Responder[]>(`/api/v1/auth/responders`),
+  createResponder: (r: { name: string; email: string; phone?: string; password: string }) =>
+    request<Responder>(`/api/v1/auth/responders`,
+      { method: 'POST', body: JSON.stringify(r) }),
+  updateResponder: (id: string, patch: { active?: boolean; name?: string; password?: string }) =>
+    request<Responder>(`/api/v1/auth/responders/${id}`,
+      { method: 'PATCH', body: JSON.stringify(patch) }),
 
   contacts: (deviceId: string) => request<Contact[]>(`/api/v1/devices/${deviceId}/contacts`),
   addContact: (deviceId: string, c: Omit<Contact, 'id' | 'device_id'>) =>

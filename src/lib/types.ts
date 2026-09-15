@@ -194,3 +194,15 @@ export interface DeviceStatusMsg {
   rssi: number | null
   battery_v: number | null
 }
+
+// ── Responder team ──────────────────────────────────────────────────────────
+
+export interface Responder {
+  id: string
+  name: string
+  email: string
+  phone: string
+  role: string
+  active: boolean
+  created_at: string
+}

@@ -16,6 +16,7 @@ const NAV = [
   { to: '/fleet', label: 'Fleet' },
   { to: '/analytics', label: 'History' },
   { to: '/devices', label: 'Devices' },
+  { to: '/team', label: 'Team' },
 ]
 
 function Metric({ label, value, tone }: { label: string; value: string | number; tone?: string }) {
@@ -86,8 +87,11 @@ export default function TopBar() {
   const available = units?.filter(u => u.status === 'available' && u.active).length
 
   return (
-    <header className="h-16 shrink-0 bg-ground-card border-b border-ground-line
-                       flex items-center px-4 gap-4 whitespace-nowrap overflow-hidden">
+    // No overflow-hidden here: it clips the account dropdown, which is
+    // absolutely positioned inside. Items are shrink-0 + whitespace-nowrap and
+    // the metrics hide at narrow widths, so nothing wraps anyway.
+    <header className="relative z-30 h-16 shrink-0 bg-ground-card border-b border-ground-line
+                       flex items-center px-4 gap-4 whitespace-nowrap">
       <div className="flex items-center gap-2.5 shrink-0">
         <div className="w-9 h-9 rounded-xl bg-brand-700 flex items-center justify-center shrink-0">
           <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="currentColor">
