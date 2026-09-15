@@ -38,6 +38,9 @@ interface AuthCtx {
   logout: () => Promise<void>
   /** Current access token, or null. Read at call time — it rotates. */
   getToken: () => string | null
+  /** Change your own password. The server revokes every other session and
+   *  returns a fresh pair, which is adopted here so this tab stays signed in. */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -154,9 +157,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [clearSession])
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const token = accessToken
+    const resp = await fetch(`${API_URL}/api/v1/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    })
+    if (!resp.ok) {
+      let detail = 'Could not change password'
+      try {
+        const body = await resp.json()
+        detail = typeof body.detail === 'string' ? body.detail
+          : Array.isArray(body.detail) ? body.detail[0]?.msg ?? detail
+          : detail
+      } catch { /* keep the fallback */ }
+      throw new Error(detail)
+    }
+    // The old tokens were just revoked server-side, so adopting the new pair
+    // is not optional — without it this tab would 401 on its next request.
+    adopt(await resp.json() as TokenResponse)
+  }, [adopt])
+
   const value = useMemo<AuthCtx>(
-    () => ({ user, restoring, login, logout, getToken: () => accessToken }),
-    [user, restoring, login, logout])
+    () => ({ user, restoring, login, logout, getToken: () => accessToken, changePassword }),
+    [user, restoring, login, logout, changePassword])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

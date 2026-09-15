@@ -6,6 +6,7 @@ import Analytics from './screens/Analytics'
 import Devices from './screens/Devices'
 import Fleet from './screens/Fleet'
 import Team from './screens/Team'
+import Account from './screens/Account'
 import Login from './screens/Login'
 import { useAuth } from './lib/auth'
 import { LiveProvider } from './lib/live'
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/devices" element={<Devices />} />
           <Route path="/team" element={<Team />} />
+          <Route path="/account" element={<Account />} />
         </Routes>
       </div>
     </LiveProvider>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useAuth } from '../lib/auth'
@@ -72,9 +72,14 @@ function AccountMenu() {
               </span>
             </div>
 
-            {/* `block` matters: a button is inline-level by default, so w-full
-                alone would leave it sitting beside the badge above. */}
-            <div className="border-t border-ground-line p-2">
+            <div className="border-t border-ground-line p-2 space-y-1">
+              <Link to="/account" onClick={() => setOpen(false)}
+                className="block w-full rounded-xl text-center bg-ground hover:bg-ground-line
+                           text-ink text-xs font-semibold py-2.5 transition-colors">
+                Change password
+              </Link>
+              {/* `block` matters: a button is inline-level by default, so w-full
+                  alone would leave it sitting beside its sibling. */}
               <button
                 onClick={() => { setOpen(false); void logout() }}
                 className="block w-full rounded-xl bg-ground hover:bg-red-50 hover:text-red-700
