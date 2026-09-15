@@ -168,12 +168,12 @@ export default function Team() {
           ))}
         </div>
 
-        <p className="text-[11px] text-ink-soft leading-relaxed">
-          Drivers do not appear here — they register themselves in the Sentinel
-          mobile app and can only ever see their own device. Responder accounts
-          are created here or with <code className="px-1 rounded bg-ground-card
-          border border-ground-line">scripts/create_responder.py</code>, never
-          by self-registration.
+        {/* Kept to one operator-facing sentence. The provisioning mechanics
+            (create_responder.py, the register/responder split) belong in the
+            README, not on a dispatcher's screen. */}
+        <p className="text-[11px] text-ink-soft">
+          Drivers are not listed here — they sign up in the Sentinel mobile app
+          and only ever see their own device.
         </p>
       </div>
     </div>

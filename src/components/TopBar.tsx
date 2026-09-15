@@ -21,7 +21,7 @@ const NAV = [
 
 function Metric({ label, value, tone }: { label: string; value: string | number; tone?: string }) {
   return (
-    <div className="hidden md:flex flex-col items-end leading-tight shrink-0">
+    <div className="hidden xl:flex flex-col items-end leading-tight shrink-0">
       <span className={`text-sm font-bold tabular-nums ${tone ?? 'text-ink'}`}>{value}</span>
       <span className="text-[10px] text-ink-soft">{label}</span>
     </div>
@@ -53,18 +53,36 @@ function AccountMenu() {
         <>
           {/* click-away catcher */}
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 mt-2 w-60 panel p-3 z-20 shadow-lift">
-            <p className="text-sm font-semibold text-ink truncate">{user.name}</p>
-            <p className="text-[11px] text-ink-soft truncate">{user.email}</p>
-            <p className="mt-1.5 inline-flex px-2 py-0.5 rounded-lg bg-brand-50 text-brand-700
-                          text-[10px] font-semibold capitalize">{user.role}</p>
-            <button
-              onClick={() => { setOpen(false); void logout() }}
-              className="mt-3 w-full rounded-xl bg-ground hover:bg-ground-line text-ink
-                         text-xs font-semibold py-2 transition-colors"
-            >
-              Sign out
-            </button>
+          <div className="absolute right-0 mt-2 w-72 panel z-20 shadow-lift overflow-hidden">
+            <div className="px-4 py-3.5">
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-full bg-brand-700 text-white text-sm font-bold
+                                 flex items-center justify-center shrink-0">{initials}</span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-ink truncate">{user.name}</p>
+                  <p className="text-[11px] text-ink-soft truncate" title={user.email}>
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+              {/* A span, not a block element, so it hugs its label. */}
+              <span className="mt-3 inline-flex px-2 py-0.5 rounded-lg bg-brand-50
+                               text-brand-700 text-[10px] font-semibold capitalize">
+                {user.role}
+              </span>
+            </div>
+
+            {/* `block` matters: a button is inline-level by default, so w-full
+                alone would leave it sitting beside the badge above. */}
+            <div className="border-t border-ground-line p-2">
+              <button
+                onClick={() => { setOpen(false); void logout() }}
+                className="block w-full rounded-xl bg-ground hover:bg-red-50 hover:text-red-700
+                           text-ink text-xs font-semibold py-2.5 transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         </>
       )}
@@ -120,7 +138,7 @@ export default function TopBar() {
 
       <div className="flex-1 min-w-0" />
 
-      <div className="flex items-center gap-5 shrink-0">
+      <div className="flex items-center gap-3 lg:gap-5 shrink-0">
         <Metric label="Today" value={stats?.last_24h ?? '—'} />
         <Metric label="Unresolved" value={unresolved}
           tone={typeof unresolved === 'number' && unresolved > 0 ? 'text-red-600' : undefined} />
@@ -129,7 +147,7 @@ export default function TopBar() {
         <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-ground shrink-0"
           title="WebSocket connection">
           <span className={`w-2 h-2 rounded-full ${ws.dot}`} />
-          <span className={`text-xs font-semibold ${ws.cls}`}>{ws.text}</span>
+          <span className={`text-xs font-semibold hidden sm:inline ${ws.cls}`}>{ws.text}</span>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0"
