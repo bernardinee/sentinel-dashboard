@@ -1,3 +1,5 @@
+import type { SignatureThresholds } from './types'
+
 export function timeAgo(iso: string | null, nowMs?: number): string {
   if (!iso) return '—'
   const s = Math.max(0, Math.floor(((nowMs ?? Date.now()) - new Date(iso).getTime()) / 1000))
@@ -49,25 +51,41 @@ export function severityColor(cls: number | null): string {
  *  model_severity "Normal" while P(crash) still clears the threshold. The
  *  copy below says exactly which of the two triggered, so the panel never
  *  reads "model flagged this (Normal)". */
+/** Full-scale gate, used until /ml/health reports the one actually applied. */
+export const DEFAULT_SIGNATURE: SignatureThresholds = {
+  profile: 'full_scale', peak_min_g: 2, peak_max_g: 7,
+  transient_min_ms: 40, transient_max_ms: 250,
+}
+
+export function signatureBand(s: SignatureThresholds): string {
+  return `${s.peak_min_g}–${s.peak_max_g} g peak lasting ${s.transient_min_ms}–${s.transient_max_ms} ms`
+}
+
 export function explainLabelSource(inc: {
   label_source: string | null
   peak_g: number | null
   excursion_ms: number | null
   model_severity: string | null
   p_crash: number | null
-}, crashThreshold?: number | null): string {
+}, crashThreshold?: number | null, sig: SignatureThresholds = DEFAULT_SIGNATURE): string {
   const pc = inc.p_crash != null ? inc.p_crash.toFixed(3) : '—'
   const thr = crashThreshold != null ? crashThreshold.toFixed(3) : 'the alert threshold'
+  const band = signatureBand(sig)
   switch (inc.label_source) {
     case 'model+signature':
-      return `Model and physics signature agreed. The model's crash probability (P(crash) = ${pc}) cleared the alert threshold (${thr}), and the pulse fits the real-crash signature: 2–7 g peak lasting 40–250 ms.`
+      return `Model and physics signature agreed. The model's crash probability (P(crash) = ${pc}) cleared the alert threshold (${thr}), and the pulse fits the crash signature: ${band}.`
     case 'signature_override': {
       const peak = inc.peak_g != null ? `${inc.peak_g.toFixed(1)} g` : 'an out-of-band'
       const dur = inc.excursion_ms != null ? `${inc.excursion_ms.toFixed(0)} ms` : 'an atypical duration'
-      return `The model's crash probability (P(crash) = ${pc}) cleared the alert threshold (${thr}), but the physics gate rejected it: a ${peak} peak over ${dur} is a manoeuvre or impact artifact, not a crash pulse. Real crashes are 2–7 g lasting 40–250 ms, so this was forced to Normal.`
+      return `The model's crash probability (P(crash) = ${pc}) cleared the alert threshold (${thr}), but the physics gate rejected it: a ${peak} peak over ${dur} is outside the crash signature (${band}), so this was forced to Normal.`
     }
     case 'model':
       return `The model classified this window as normal driving — P(crash) = ${pc} stayed below the alert threshold (${thr}). No crash detected.`
+    case 'rc_demo_threshold': {
+      const peak = inc.peak_g != null ? `${inc.peak_g.toFixed(1)} g` : '—'
+      const dur = inc.excursion_ms != null ? `${inc.excursion_ms.toFixed(0)} ms` : '—'
+      return `RC-car demonstration: classified by provisional scale-model thresholds alone (${band}), not by the ML model. Measured ${peak} over ${dur}. Excluded from model-performance statistics.`
+    }
     case 'manual_panic':
       return 'Manual panic button — a human requested help. The ML model was deliberately bypassed, and this incident is excluded from model-performance statistics.'
     default:

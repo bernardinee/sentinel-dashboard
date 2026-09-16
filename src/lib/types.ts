@@ -112,7 +112,16 @@ export interface MlHealth {
   n_features?: number
   crash_alert_threshold?: number
   taxonomy?: string
+  signature?: SignatureThresholds
   error?: string
+}
+
+export interface SignatureThresholds {
+  profile: string
+  peak_min_g: number
+  peak_max_g: number
+  transient_min_ms: number
+  transient_max_ms: number
 }
 
 export interface Contact {

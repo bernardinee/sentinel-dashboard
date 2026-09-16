@@ -8,7 +8,7 @@ import {
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { api } from '../lib/api'
-import { csvExport, dateTime } from '../lib/format'
+import { DEFAULT_SIGNATURE, csvExport, dateTime } from '../lib/format'
 import SeverityChip from '../components/SeverityChip'
 import StatusBadge from '../components/StatusBadge'
 
@@ -31,6 +31,12 @@ export default function Analytics() {
   const [severity, setSeverity] = useState('')
 
   const { data: stats } = useQuery({ queryKey: ['stats'], queryFn: api.stats })
+  const { data: ml } = useQuery({ queryKey: ['mlHealth'], queryFn: api.mlHealth })
+  const sig = ml?.signature ?? DEFAULT_SIGNATURE
+  // Snap to the 0.5 g bin labels the histogram's category axis uses.
+  const binLabel = (g: number) => (Math.floor(Math.min(g, 12) / 0.5) * 0.5).toFixed(1)
+  const bandLo = binLabel(sig.peak_min_g)
+  const bandHi = binLabel(sig.peak_max_g)
   const { data: page } = useQuery({
     queryKey: ['incidents', 'analytics'],
     queryFn: () => api.incidents({ page_size: 500 }),
@@ -44,7 +50,7 @@ export default function Analytics() {
   const byDay = useMemo(() => {
     const m = new Map<string, { day: string; Normal: number; Moderate: number; Severe: number; pending: number }>()
     for (const i of (page?.items ?? [])) {
-      if (i.label_source === 'manual_panic') continue
+      if (i.label_source === 'manual_panic' || i.label_source === 'rc_demo_threshold') continue
       const day = i.received_at.slice(0, 10)
       const row = m.get(day) ?? { day, Normal: 0, Moderate: 0, Severe: 0, pending: 0 }
       const key = i.severity_name ?? 'pending'
@@ -150,7 +156,8 @@ export default function Analytics() {
             </div>
           </Card>
 
-          <Card title="Peak-g distribution" sub="0.5 g bins · crash band 2–7 g marked">
+          <Card title="Peak-g distribution"
+            sub={`0.5 g bins · crash band ${sig.peak_min_g}–${sig.peak_max_g} g marked`}>
             <div className="h-52">
               <ResponsiveContainer>
                 <BarChart data={peakHist}>
@@ -158,13 +165,13 @@ export default function Analytics() {
                   <XAxis dataKey="g" stroke="#9ca3af" fontSize={10} interval={3} />
                   <YAxis stroke="#9ca3af" fontSize={10} allowDecimals={false} />
                   <Tooltip contentStyle={TT} />
-                  {/* VZCrash: 99.9% of real crashes fall inside this band */}
-                  <ReferenceArea x1="2.0" x2="7.0" fill="#22c55e" fillOpacity={0.08}
-                    label={{ value: 'real-crash band', fill: '#4ade80', fontSize: 10, position: 'insideTop' }} />
-                  <ReferenceLine x="2.0" stroke="#f59e0b" strokeDasharray="5 4"
-                    label={{ value: '2 g', fill: '#f59e0b', fontSize: 10, position: 'top' }} />
-                  <ReferenceLine x="7.0" stroke="#ef4444" strokeDasharray="5 4"
-                    label={{ value: '7 g', fill: '#ef4444', fontSize: 10, position: 'top' }} />
+                  {/* The band the physics gate is applying right now. */}
+                  <ReferenceArea x1={bandLo} x2={bandHi} fill="#22c55e" fillOpacity={0.08}
+                    label={{ value: 'crash band', fill: '#4ade80', fontSize: 10, position: 'insideTop' }} />
+                  <ReferenceLine x={bandLo} stroke="#f59e0b" strokeDasharray="5 4"
+                    label={{ value: `${sig.peak_min_g} g`, fill: '#f59e0b', fontSize: 10, position: 'top' }} />
+                  <ReferenceLine x={bandHi} stroke="#ef4444" strokeDasharray="5 4"
+                    label={{ value: `${sig.peak_max_g} g`, fill: '#ef4444', fontSize: 10, position: 'top' }} />
                   <Bar dataKey="count" fill="#a78bfa" />
                 </BarChart>
               </ResponsiveContainer>

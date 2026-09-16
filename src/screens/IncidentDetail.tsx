@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import {
-  clock, coords, dateTime, explainLabelSource, severityColor,
+  DEFAULT_SIGNATURE, clock, coords, dateTime, explainLabelSource, severityColor,
 } from '../lib/format'
 import { UNIT_COLOR } from '../lib/units'
 import SeverityChip from '../components/SeverityChip'
@@ -101,6 +101,7 @@ export default function IncidentDetail() {
   // The alert threshold is model metadata, not per-incident — read it from
   // /ml/health so the explanation quotes the real number.
   const { data: ml } = useQuery({ queryKey: ['mlHealth'], queryFn: api.mlHealth })
+  const sig = ml?.signature ?? DEFAULT_SIGNATURE
   // DispatchPanel owns the units list; the map reads routes from dispatchOptions.
   const { data: options } = useQuery({
     queryKey: ['dispatchOptions', id],
@@ -216,13 +217,17 @@ export default function IncidentDetail() {
               </p>
             ) : (
               <>
-                <SignatureRow label="Peak resultant" test="crash band: 2 g ≤ peak < 7 g"
+                <SignatureRow label="Peak resultant"
+                  test={`crash band: ${sig.peak_min_g} g ≤ peak < ${sig.peak_max_g} g`}
                   value={incident.peak_g != null ? `${incident.peak_g.toFixed(2)} g` : '—'}
-                  pass={incident.peak_g != null ? incident.peak_g >= 2 && incident.peak_g < 7 : null} />
-                <SignatureRow label="Excursion above 2 g" test="transient: 40–250 ms"
+                  pass={incident.peak_g != null
+                    ? incident.peak_g >= sig.peak_min_g && incident.peak_g < sig.peak_max_g : null} />
+                <SignatureRow label={`Excursion above ${sig.peak_min_g} g`}
+                  test={`transient: ${sig.transient_min_ms}–${sig.transient_max_ms} ms`}
                   value={incident.excursion_ms != null ? `${incident.excursion_ms.toFixed(0)} ms` : '—'}
                   pass={incident.excursion_ms != null
-                    ? incident.excursion_ms >= 40 && incident.excursion_ms <= 250 : null} />
+                    ? incident.excursion_ms >= sig.transient_min_ms
+                      && incident.excursion_ms <= sig.transient_max_ms : null} />
                 <SignatureRow label="Impulse (Δv proxy)" test="Severe if ≥ 0.959 g·s (~34 km/h)"
                   value={incident.impulse_gs != null ? `${incident.impulse_gs.toFixed(3)} g·s` : '—'}
                   pass={null} />
@@ -266,7 +271,7 @@ export default function IncidentDetail() {
                 Why · label_source = {incident.label_source ?? 'pending'}
               </p>
               <p className="text-xs text-ink leading-relaxed">
-                {explainLabelSource(incident, ml?.crash_alert_threshold)}
+                {explainLabelSource(incident, ml?.crash_alert_threshold, sig)}
               </p>
             </div>
           </div>
