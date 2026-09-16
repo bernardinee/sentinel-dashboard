@@ -1,8 +1,15 @@
-// MapLibre GL on keyless OpenStreetMap raster tiles (§3: no Mapbox token that
-// could expire or rate-limit mid-defence). CARTO's basemap was tried first and
-// rejected — it now stamps "API KEY REQUIRED" across its free tiles.
+// MapLibre GL on keyless Esri World Street Map raster tiles (§3: no Mapbox
+// token that could expire or rate-limit mid-defence).
 //
-// The console theme is light, so OSM's own tiles are used as-is.
+// Two earlier keyless sources had to be abandoned after each started refusing
+// the app in production:
+//   • CARTO — now stamps "API KEY REQUIRED" across its free tiles.
+//   • tile.openstreetmap.org — now serves a blank 103-byte placeholder for
+//     app traffic under its tile usage policy, so the map rendered all grey.
+// Esri's ArcGIS Online basemaps have served keyless raster tiles for years and
+// are the standard drop-in once the community endpoints lock down; the {z}/{y}/{x}
+// path order (y before x) is Esri's, not the usual OSM order. The console theme
+// is light and the street basemap's named roads give dispatchers route context.
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import { severityColor } from '../lib/format'
@@ -12,15 +19,15 @@ import type { Incident, Unit } from '../lib/types'
 const STYLE: maplibregl.StyleSpecification = {
   version: 8,
   sources: {
-    osm: {
+    basemap: {
       type: 'raster',
-      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'],
       tileSize: 256,
       maxzoom: 19,
-      attribution: '© OpenStreetMap contributors',
+      attribution: 'Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap contributors',
     },
   },
-  layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+  layers: [{ id: 'basemap', type: 'raster', source: 'basemap' }],
 }
 
 const ACCRA: [number, number] = [-0.187, 5.6037]
