@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useLive } from '../lib/live'
-import { timeAgo, uptime } from '../lib/format'
+import { hasFix, timeAgo, uptime } from '../lib/format'
 import { UNIT_COLOR, UNIT_LABEL, UNIT_STATUS_LABEL, UNIT_STATUS_STYLE } from '../lib/units'
 import IncidentCard from '../components/IncidentCard'
 import MapView, { incidentPins, unitPins } from '../components/MapView'
@@ -126,10 +126,11 @@ export default function LiveOps() {
   ], [incidents, units, navigate])
 
   const focus = useMemo(() => {
-    const target = newestIncident && newestIncident.lat != null ? newestIncident
-      : incidents.find(i => i.lat != null)
-    return target && target.lat != null && target.lon != null
-      ? { lat: target.lat, lon: target.lon, key: target.id } : null
+    const target = newestIncident && hasFix(newestIncident.lat, newestIncident.lon)
+      ? newestIncident
+      : incidents.find(i => hasFix(i.lat, i.lon))
+    return target && hasFix(target.lat, target.lon)
+      ? { lat: target.lat as number, lon: target.lon as number, key: target.id } : null
   }, [newestIncident, incidents])
 
   const busyUnits = (units ?? []).filter(u =>

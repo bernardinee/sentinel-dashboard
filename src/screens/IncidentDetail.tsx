@@ -5,7 +5,7 @@ import { Link, useParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import {
-  DEFAULT_SIGNATURE, clock, coords, dateTime, explainLabelSource, severityColor,
+  DEFAULT_SIGNATURE, clock, coords, dateTime, explainLabelSource, hasFix, severityColor,
 } from '../lib/format'
 import { UNIT_COLOR } from '../lib/units'
 import SeverityChip from '../components/SeverityChip'
@@ -106,16 +106,16 @@ export default function IncidentDetail() {
   const { data: options } = useQuery({
     queryKey: ['dispatchOptions', id],
     queryFn: () => api.dispatchOptions(id),
-    enabled: !!incident?.lat,
+    enabled: hasFix(incident?.lat, incident?.lon),
   })
 
   // Draw the hovered candidate's route, else the routes of units already sent.
   const { pins, routes } = useMemo(() => {
-    if (!incident || incident.lat == null || incident.lon == null) {
+    if (!incident || !hasFix(incident.lat, incident.lon)) {
       return { pins: [], routes: [] }
     }
     const scene = {
-      id: 'scene', lat: incident.lat, lon: incident.lon,
+      id: 'scene', lat: incident.lat as number, lon: incident.lon as number,
       color: severityColor(incident.severity_class),
       label: incident.severity_name ?? 'Incident', sub: incident.event_id,
       kind: 'incident' as const,
@@ -180,10 +180,10 @@ export default function IncidentDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="panel overflow-hidden">
             <div className="h-[260px] sm:h-[360px]">
-              {incident.lat != null && incident.lon != null ? (
+              {hasFix(incident.lat, incident.lon) ? (
                 <MapView pins={pins} routes={routes} zoom={13}
                   focus={routes.length === 0
-                    ? { lat: incident.lat, lon: incident.lon, key: incident.id }
+                    ? { lat: incident.lat as number, lon: incident.lon as number, key: incident.id }
                     : null} />
               ) : (
                 <div className="h-full flex items-center justify-center text-xs text-ink-soft">
@@ -196,7 +196,7 @@ export default function IncidentDetail() {
                 {coords(incident.lat, incident.lon)}
                 {incident.satellites != null && ` · ${incident.satellites} sats`}
               </span>
-              {incident.lat != null && (
+              {hasFix(incident.lat, incident.lon) && (
                 <a className="text-brand-700 hover:underline font-semibold py-2 sm:py-0"
                   href={`https://maps.google.com/?q=${incident.lat},${incident.lon}`}
                   target="_blank" rel="noreferrer">Open in Maps ↗</a>

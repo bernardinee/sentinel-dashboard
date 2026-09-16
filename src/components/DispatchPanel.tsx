@@ -5,6 +5,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
+import { hasFix } from '../lib/format'
 import {
   UNIT_COLOR, UNIT_LABEL, UNIT_STATUS_LABEL, UNIT_STATUS_STYLE, UNIT_TINT,
   etaTone, unitIconPath,
@@ -100,12 +101,12 @@ export default function DispatchPanel({ incident, actor, onPreview }: {
 }) {
   const qc = useQueryClient()
   const closed = ['resolved', 'false_alarm'].includes(incident.status)
-  const hasFix = incident.lat != null && incident.lon != null
+  const located = hasFix(incident.lat, incident.lon)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['dispatchOptions', incident.id],
     queryFn: () => api.dispatchOptions(incident.id),
-    enabled: hasFix && !closed,
+    enabled: located && !closed,
     refetchInterval: 60000,
   })
 
@@ -172,7 +173,7 @@ export default function DispatchPanel({ incident, actor, onPreview }: {
         </div>
       )}
 
-      {!hasFix && (
+      {!located && (
         <p className="text-xs text-ink-soft py-4 text-center">
           This incident has no GPS fix, so units cannot be routed to it.
         </p>
@@ -182,7 +183,7 @@ export default function DispatchPanel({ incident, actor, onPreview }: {
           Incident is {incident.status.replace('_', ' ')} — dispatch is closed.
         </p>
       )}
-      {isLoading && hasFix && !closed && (
+      {isLoading && located && !closed && (
         <p className="text-xs text-ink-soft py-4 text-center">Calculating routes…</p>
       )}
       {error && (

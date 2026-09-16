@@ -23,9 +23,17 @@ export function dateTime(iso: string | null): string {
   })
 }
 
+/** A real GPS fix. (0, 0) — "null island" in the Atlantic — is what a receiver
+ *  reports when it has no lock but still emits a coordinate, so it is treated as
+ *  no fix rather than a point off the coast of West Africa. Mirrors app/geo.py. */
+export function hasFix(lat: number | null | undefined, lon: number | null | undefined): boolean {
+  if (lat == null || lon == null) return false
+  return !(Math.abs(lat) < 1e-4 && Math.abs(lon) < 1e-4)
+}
+
 export function coords(lat: number | null, lon: number | null): string {
-  if (lat == null || lon == null) return 'no fix'
-  return `${lat.toFixed(4)}°, ${lon.toFixed(4)}°`
+  if (!hasFix(lat, lon)) return 'no fix'
+  return `${(lat as number).toFixed(4)}°, ${(lon as number).toFixed(4)}°`
 }
 
 export function uptime(s: number | null): string {

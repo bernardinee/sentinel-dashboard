@@ -12,7 +12,7 @@
 // is light and the street basemap's named roads give dispatchers route context.
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
-import { severityColor } from '../lib/format'
+import { hasFix, severityColor } from '../lib/format'
 import { UNIT_COLOR, UNIT_GLYPH, UNIT_LABEL } from '../lib/units'
 import type { Incident, Unit } from '../lib/types'
 
@@ -54,7 +54,7 @@ export interface MapRoute {
 
 export function incidentPins(incidents: Incident[], onClick: (i: Incident) => void): MapPin[] {
   return incidents
-    .filter(i => i.lat != null && i.lon != null)
+    .filter(i => hasFix(i.lat, i.lon))
     .map(i => ({
       id: `inc-${i.id}`,
       lat: i.lat as number,
@@ -73,6 +73,10 @@ export function unitPins(units: Unit[], onClick?: (u: Unit) => void): MapPin[] {
     .map(u => {
       const lat = u.current_lat ?? u.home_lat
       const lon = u.current_lon ?? u.home_lon
+      return { lat, lon, u }
+    })
+    .filter(({ lat, lon }) => hasFix(lat, lon))
+    .map(({ lat, lon, u }) => {
       return {
         id: `unit-${u.id}`,
         lat, lon,
