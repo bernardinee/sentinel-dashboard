@@ -20,7 +20,7 @@ npm run dev            # http://localhost:5173
 
 ```
 VITE_API_URL=http://localhost:8080
-VITE_WS_URL=ws://localhost:8080        # wss:// in production
+VITE_WS_URL=ws://localhost:8080        # optional; defaults to VITE_API_URL with ws(s)
 ```
 
 No API key reaches the browser. Responders sign in with an email and password,

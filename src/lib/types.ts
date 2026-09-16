@@ -177,7 +177,7 @@ export interface DispatchOptions {
 
 export interface WsEnvelope {
   type: 'incident.created' | 'incident.updated' | 'device_status'
-      | 'unit.updated' | 'ping'
+      | 'unit.updated' | 'contact.updated' | 'ping'
   at: string
   data: Record<string, unknown>
 }

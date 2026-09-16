@@ -6,8 +6,13 @@ import type {
   UnitStatus, UnitType,
 } from './types'
 
-export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
-export const WS_URL: string = import.meta.env.VITE_WS_URL ?? 'ws://localhost:8080'
+export const API_URL: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:8080')
+  .replace(/\/+$/, '')
+// Keep REST and realtime on the same backend unless an explicit override is
+// needed. A missing VITE_WS_URL previously made production sockets target the
+// visitor's localhost even while REST was correctly pointed at Railway.
+export const WS_URL: string = (import.meta.env.VITE_WS_URL
+  ?? API_URL.replace(/^http/, 'ws')).replace(/\/+$/, '')
 
 // No API key is shipped to the browser any more. Every request carries the
 // signed-in responder's short-lived access token, which lives in memory only.

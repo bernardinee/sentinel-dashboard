@@ -61,6 +61,13 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
           const d = msg.data as unknown as DeviceStatusMsg
           setDeviceStatus(prev => ({ ...prev, [d.device_id]: d }))
           qc.invalidateQueries({ queryKey: ['devices'] })
+        } else if (msg.type === 'unit.updated') {
+          qc.invalidateQueries({ queryKey: ['units'] })
+          qc.invalidateQueries({ queryKey: ['dispatchOptions'] })
+        } else if (msg.type === 'contact.updated') {
+          // Contact data remains on the device-scoped REST endpoint. The frame
+          // is only an invalidation hint, avoiding personal data on the socket.
+          qc.invalidateQueries({ queryKey: ['contacts'] })
         }
       },
       onState: setWsState,
