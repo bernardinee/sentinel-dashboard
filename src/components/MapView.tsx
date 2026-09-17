@@ -1,34 +1,11 @@
-// MapLibre GL on keyless Esri World Street Map raster tiles (§3: no Mapbox
-// token that could expire or rate-limit mid-defence).
-//
-// Two earlier keyless sources had to be abandoned after each started refusing
-// the app in production:
-//   • CARTO — now stamps "API KEY REQUIRED" across its free tiles.
-//   • tile.openstreetmap.org — now serves a blank 103-byte placeholder for
-//     app traffic under its tile usage policy, so the map rendered all grey.
-// Esri's ArcGIS Online basemaps have served keyless raster tiles for years and
-// are the standard drop-in once the community endpoints lock down; the {z}/{y}/{x}
-// path order (y before x) is Esri's, not the usual OSM order. The console theme
-// is light and the street basemap's named roads give dispatchers route context.
+// MapLibre GL with OpenFreeMap's documented, keyless vector style.
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import { hasFix, severityColor } from '../lib/format'
 import { UNIT_COLOR, UNIT_GLYPH, UNIT_LABEL } from '../lib/units'
 import type { Incident, Unit } from '../lib/types'
 
-const STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    basemap: {
-      type: 'raster',
-      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'],
-      tileSize: 256,
-      maxzoom: 19,
-      attribution: 'Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap contributors',
-    },
-  },
-  layers: [{ id: 'basemap', type: 'raster', source: 'basemap' }],
-}
+const STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 
 const ACCRA: [number, number] = [-0.187, 5.6037]
 const ROUTE_SOURCE = 'dispatch-route'
@@ -90,12 +67,13 @@ export function unitPins(units: Unit[], onClick?: (u: Unit) => void): MapPin[] {
     })
 }
 
-export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = false }: {
+export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = false, visible = true }: {
   pins: MapPin[]
   routes?: MapRoute[]
   focus?: { lat: number; lon: number; key?: string } | null
   zoom?: number
   fitAll?: boolean
+  visible?: boolean
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -105,8 +83,9 @@ export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = 
 
   useEffect(() => {
     if (!containerRef.current) return
+    const container = containerRef.current
     const map = new maplibregl.Map({
-      container: containerRef.current,
+      container,
       style: STYLE,
       center: focus ? [focus.lon, focus.lat] : ACCRA,
       zoom,
@@ -148,7 +127,10 @@ export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = 
       })
     })
     mapRef.current = map
+    const observer = new ResizeObserver(() => map.resize())
+    observer.observe(container)
     return () => {
+      observer.disconnect()
       markersRef.current.forEach(m => m.remove())
       markersRef.current = []
       readyRef.current = false
@@ -157,6 +139,12 @@ export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = 
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (!visible) return
+    const frame = requestAnimationFrame(() => mapRef.current?.resize())
+    return () => cancelAnimationFrame(frame)
+  }, [visible])
 
   // ── markers ─────────────────────────────────────────────────────────────
   useEffect(() => {

@@ -39,8 +39,11 @@ function Contacts({ device }: { device: Device }) {
   return (
     <div>
       <h4 className="text-xs font-semibold text-ink-soft uppercase tracking-wider mb-2">
-        Emergency contacts
+        Emergency contacts · dispatcher view
       </h4>
+      <p className="text-[11px] text-ink-soft mb-2">
+        Drivers see only their own contacts in the mobile app. Contacts added here are for dispatchers and are not added to a driver's personal list.
+      </p>
       <div className="space-y-1.5 mb-3">
         {(contacts ?? []).map(c => (
           <div key={c.id} className="flex items-center gap-2 text-xs bg-ground border border-ground-line rounded-lg px-3 py-2">

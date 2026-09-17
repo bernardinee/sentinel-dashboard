@@ -196,7 +196,12 @@ export default function LiveOps() {
 
       {/* Map */}
       <section className={`${view === 'map' ? 'block' : 'hidden'} lg:block relative min-h-0 flex-1`}>
-        <MapView pins={pins} focus={focus} zoom={12} />
+        <MapView pins={pins} focus={focus} zoom={12} visible={view === 'map'} />
+        {!isLoading && !incidents.some(i => hasFix(i.lat, i.lon)) && (
+          <p className="absolute top-3 left-3 z-10 max-w-[260px] rounded-lg bg-white/95 p-3 text-xs text-ink shadow-card">
+            No incident GPS fix yet. New SOS alerts will appear here when the phone or ESP32 sends a valid location.
+          </p>
+        )}
       </section>
 
       {/* Right rail */}
