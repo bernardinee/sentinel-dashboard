@@ -1,4 +1,16 @@
-// MapLibre GL with OpenFreeMap's documented, keyless vector style.
+// MapLibre GL on keyless Esri World Street Map raster tiles (§3: no Mapbox
+// token that could expire or rate-limit mid-defence).
+//
+// Three earlier keyless sources were each abandoned after failing in the field:
+//   • CARTO — stamps "API KEY REQUIRED" across its free tiles.
+//   • tile.openstreetmap.org — serves a blank 103-byte placeholder for app
+//     traffic under its tile usage policy, so the map rendered all grey.
+//   • OpenFreeMap (vector) — its tiles load, but the style renders blank on the
+//     ANGLE/Direct3D GPU stack common on Windows, so the map showed only pins.
+// Esri's ArcGIS Online basemaps have served keyless RASTER tiles for years and
+// render anywhere a plain image does; the {z}/{y}/{x} path order (y before x) is
+// Esri's, not the usual OSM order. The light street basemap's named roads give
+// dispatchers route context.
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import { hasFix, severityColor } from '../lib/format'
@@ -8,7 +20,19 @@ import {
 } from '../lib/units'
 import type { DispatchConfig, Incident, Unit } from '../lib/types'
 
-const STYLE = 'https://tiles.openfreemap.org/styles/liberty'
+const STYLE: maplibregl.StyleSpecification = {
+  version: 8,
+  sources: {
+    basemap: {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: 'Tiles © Esri — Esri, HERE, Garmin, © OpenStreetMap contributors',
+    },
+  },
+  layers: [{ id: 'basemap', type: 'raster', source: 'basemap' }],
+}
 
 const ACCRA: [number, number] = [-0.187, 5.6037]
 const ROUTE_SOURCE = 'dispatch-route'
