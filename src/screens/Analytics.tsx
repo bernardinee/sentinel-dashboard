@@ -217,7 +217,7 @@ export default function Analytics() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-left text-ink-soft border-b border-ground-line">
-                  {['Received', 'Event', 'Severity', 'Conf.', 'Peak g', 'Source', 'Status'].map(h =>
+                  {['Received', 'Event', 'Severity', 'Peak g', 'Source', 'Status'].map(h =>
                     <th key={h} className="px-4 py-2 font-medium">{h}</th>)}
                 </tr>
               </thead>
@@ -233,16 +233,13 @@ export default function Analytics() {
                     <td className="px-4 py-2">
                       <SeverityChip name={i.severity_name} pending={i.classification_pending} />
                     </td>
-                    <td className="px-4 py-2 tabular-nums">
-                      {i.confidence != null ? `${(i.confidence * 100).toFixed(0)}%` : '—'}
-                    </td>
                     <td className="px-4 py-2 tabular-nums">{i.peak_g?.toFixed(2) ?? '—'}</td>
                     <td className="px-4 py-2 text-ink-soft">{i.label_source ?? 'pending'}</td>
                     <td className="px-4 py-2"><StatusBadge status={i.status} /></td>
                   </tr>
                 ))}
                 {incidents.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-8 text-center text-ink-soft">
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-ink-soft">
                     No incidents match the filters.
                   </td></tr>
                 )}

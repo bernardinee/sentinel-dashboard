@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import {
-  UNIT_COLOR, UNIT_LABEL, UNIT_STATUS_LABEL, UNIT_STATUS_STYLE, UNIT_TINT,
-  unitIconPath,
+  DEFAULT_DISPATCH_CONFIG, UNIT_COLOR, UNIT_LABEL, UNIT_STATUS_LABEL,
+  UNIT_STATUS_STYLE, UNIT_TINT, unitIconPath, unitMotions,
 } from '../lib/units'
 import MapView, { unitPins, incidentPins } from '../components/MapView'
 import type { Unit, UnitType } from '../lib/types'
@@ -138,6 +138,9 @@ export default function Fleet() {
     queryKey: ['incidents', 'fleet'],
     queryFn: () => api.incidents({ page_size: 50 }),
   })
+  const { data: dispatchConfig } = useQuery({
+    queryKey: ['dispatchConfig'], queryFn: api.dispatchConfig, staleTime: Infinity,
+  })
 
   const shown = useMemo(
     () => (units ?? []).filter(u => filter === 'ALL' || u.unit_type === filter),
@@ -160,6 +163,8 @@ export default function Fleet() {
     ...unitPins(units ?? []),
     ...incidentPins(activeIncidents, () => {}),
   ], [units, activeIncidents])
+
+  const movers = useMemo(() => unitMotions(units ?? []), [units])
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
@@ -196,7 +201,8 @@ export default function Fleet() {
 
         <div className="panel overflow-hidden">
           <div className="h-[240px] sm:h-[320px]">
-            <MapView pins={pins} fitAll zoom={11} />
+            <MapView pins={pins} fitAll zoom={11}
+              movers={movers} dispatchConfig={dispatchConfig ?? DEFAULT_DISPATCH_CONFIG} />
           </div>
           <div className="flex items-center gap-4 px-4 py-2.5 border-t border-ground-line flex-wrap">
             {TYPES.map(t => (

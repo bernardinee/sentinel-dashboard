@@ -7,7 +7,7 @@ import { api } from '../lib/api'
 import {
   DEFAULT_SIGNATURE, clock, coords, dateTime, explainLabelSource, hasFix, severityColor,
 } from '../lib/format'
-import { UNIT_COLOR } from '../lib/units'
+import { DEFAULT_DISPATCH_CONFIG, UNIT_COLOR, unitMotions } from '../lib/units'
 import SeverityChip from '../components/SeverityChip'
 import StatusBadge from '../components/StatusBadge'
 import WaveformChart from '../components/WaveformChart'
@@ -102,6 +102,9 @@ export default function IncidentDetail() {
   // /ml/health so the explanation quotes the real number.
   const { data: ml } = useQuery({ queryKey: ['mlHealth'], queryFn: api.mlHealth })
   const sig = ml?.signature ?? DEFAULT_SIGNATURE
+  const { data: dispatchConfig } = useQuery({
+    queryKey: ['dispatchConfig'], queryFn: api.dispatchConfig, staleTime: Infinity,
+  })
   // DispatchPanel owns the units list; the map reads routes from dispatchOptions.
   const { data: options } = useQuery({
     queryKey: ['dispatchOptions', id],
@@ -138,7 +141,8 @@ export default function IncidentDetail() {
     // Nothing hovered: show the units actually responding, and their routes.
     const responding = options?.responding ?? []
     const respondingPins = responding.map(o => ({
-      id: `u-${o.unit.id}`,
+      // id matches unitMotions() so MapView can animate this pin along its route.
+      id: `unit-${o.unit.id}`,
       lat: o.unit.current_lat ?? o.unit.home_lat,
       lon: o.unit.current_lon ?? o.unit.home_lon,
       color: UNIT_COLOR[o.unit.unit_type], label: o.unit.call_sign,
@@ -146,12 +150,17 @@ export default function IncidentDetail() {
       kind: 'unit' as const, glyph: o.unit.unit_type.slice(0, 2),
     }))
     const respondingRoutes = responding.map(o => ({
-      geometry: o.route.geometry,
+      geometry: o.unit.route_geometry ?? o.route.geometry,
       color: UNIT_COLOR[o.unit.unit_type],
       dashed: o.route.source !== 'osrm',
     }))
     return { pins: [scene, ...respondingPins], routes: respondingRoutes }
   }, [incident, preview, options])
+
+  // Pins for units in flight animate along their route; matches respondingPins ids.
+  const movers = useMemo(
+    () => (preview ? [] : unitMotions((options?.responding ?? []).map(o => o.unit))),
+    [preview, options])
 
   if (!incident) return <div className="p-8 text-ink-soft">Loading incident…</div>
 
@@ -182,6 +191,7 @@ export default function IncidentDetail() {
             <div className="h-[260px] sm:h-[360px]">
               {hasFix(incident.lat, incident.lon) ? (
                 <MapView pins={pins} routes={routes} zoom={13}
+                  movers={movers} dispatchConfig={dispatchConfig ?? DEFAULT_DISPATCH_CONFIG}
                   focus={routes.length === 0
                     ? { lat: incident.lat as number, lon: incident.lon as number, key: incident.id }
                     : null} />
@@ -261,8 +271,6 @@ export default function IncidentDetail() {
             </div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs mt-3 text-ink-soft tabular-nums">
               <span>P(crash) <b className="text-ink">{incident.p_crash?.toFixed(3) ?? '—'}</b></span>
-              <span>confidence <b className="text-ink">
-                {incident.confidence != null ? `${(incident.confidence * 100).toFixed(1)}%` : '—'}</b></span>
               <span>model said <b className="text-ink">{incident.model_severity ?? '—'}</b></span>
               <span>final <b className="text-ink">{incident.severity_name ?? 'pending'}</b></span>
             </div>

@@ -155,6 +155,18 @@ export interface Unit {
   assigned_incident_id: string | null
   active: boolean
   last_update: string
+  /** Dispatch-run state, present while responding; null when idle. The map
+   *  animates the unit along `route_geometry` from `dispatched_at`. */
+  dispatched_at: string | null
+  route_geometry: [number, number][] | null
+  route_eta_s: number | null
+}
+
+export interface DispatchConfig {
+  /** Seconds a crew takes to roll before it is "en route". */
+  mobilize_s: number
+  /** Demo time-compression; 1 = real time. */
+  sim_speed: number
 }
 
 export interface RouteInfo {

@@ -1,9 +1,9 @@
 // REST client. Every request carries the signed-in responder's Bearer token.
 import { currentAccessToken } from './auth'
 import type {
-  Contact, Device, DispatchOptions, Heartbeat, Incident, IncidentDetail,
-  IncidentPage, IncidentWindow, MlHealth, Responder, StatsSummary, Unit,
-  UnitStatus, UnitType,
+  Contact, Device, DispatchConfig, DispatchOptions, Heartbeat, Incident,
+  IncidentDetail, IncidentPage, IncidentWindow, MlHealth, Responder,
+  StatsSummary, Unit, UnitStatus, UnitType,
 } from './types'
 
 export const API_URL: string = (import.meta.env.VITE_API_URL ?? 'http://localhost:8080')
@@ -86,6 +86,7 @@ export const api = {
 
   // ── Response units / dispatch ─────────────────────────────────────────────
   units: () => request<Unit[]>(`/api/v1/units`),
+  dispatchConfig: () => request<DispatchConfig>(`/api/v1/dispatch/config`),
   registerUnit: (u: {
     call_sign: string; unit_type: UnitType; station_name: string
     home_lat: number; home_lon: number; crew_size?: number; contact_phone?: string

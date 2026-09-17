@@ -2,8 +2,11 @@
 import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import { hasFix, severityColor } from '../lib/format'
-import { UNIT_COLOR, UNIT_GLYPH, UNIT_LABEL } from '../lib/units'
-import type { Incident, Unit } from '../lib/types'
+import {
+  DEFAULT_DISPATCH_CONFIG, UNIT_COLOR, UNIT_GLYPH, UNIT_LABEL,
+  motionFraction, pointAlongRoute, type UnitMotion,
+} from '../lib/units'
+import type { DispatchConfig, Incident, Unit } from '../lib/types'
 
 const STYLE = 'https://tiles.openfreemap.org/styles/liberty'
 
@@ -67,19 +70,31 @@ export function unitPins(units: Unit[], onClick?: (u: Unit) => void): MapPin[] {
     })
 }
 
-export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = false, visible = true }: {
+export default function MapView({
+  pins, routes = [], focus, zoom = 12, fitAll = false, visible = true,
+  movers = [], dispatchConfig = DEFAULT_DISPATCH_CONFIG,
+}: {
   pins: MapPin[]
   routes?: MapRoute[]
   focus?: { lat: number; lon: number; key?: string } | null
   zoom?: number
   fitAll?: boolean
   visible?: boolean
+  /** Units currently travelling a route; their pins are animated each frame. */
+  movers?: UnitMotion[]
+  dispatchConfig?: DispatchConfig
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const markersRef = useRef<maplibregl.Marker[]>([])
+  const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map())
   const lastFocusKey = useRef<string | null>(null)
   const readyRef = useRef(false)
+  // Read inside the animation frame so it always sees the latest without
+  // restarting the loop on every data refetch.
+  const moversRef = useRef<UnitMotion[]>(movers)
+  moversRef.current = movers
+  const configRef = useRef<DispatchConfig>(dispatchConfig)
+  configRef.current = dispatchConfig
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -132,7 +147,7 @@ export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = 
     return () => {
       observer.disconnect()
       markersRef.current.forEach(m => m.remove())
-      markersRef.current = []
+      markersRef.current = new Map()
       readyRef.current = false
       map.remove()
       mapRef.current = null
@@ -151,7 +166,8 @@ export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = 
     const map = mapRef.current
     if (!map) return
     markersRef.current.forEach(m => m.remove())
-    markersRef.current = pins.map(p => {
+    const next = new Map<string, maplibregl.Marker>()
+    for (const p of pins) {
       const el = document.createElement('div')
       if (p.kind === 'unit') {
         el.className = 'unit-pin'
@@ -165,12 +181,35 @@ export default function MapView({ pins, routes = [], focus, zoom = 12, fitAll = 
       const popup = new maplibregl.Popup({ offset: 14, closeButton: false })
         .setHTML(`<strong>${p.label}</strong>${
           p.sub ? `<br/><span style="color:#6b7280">${p.sub}</span>` : ''}`)
-      return new maplibregl.Marker({ element: el })
+      next.set(p.id, new maplibregl.Marker({ element: el })
         .setLngLat([p.lon, p.lat])
         .setPopup(popup)
-        .addTo(map)
-    })
+        .addTo(map))
+    }
+    // Place any in-flight units at their current spot immediately, so a data
+    // refetch that rebuilds markers doesn't blink them back to their station.
+    const now = Date.now()
+    for (const m of moversRef.current) {
+      next.get(m.id)?.setLngLat(pointAlongRoute(m.geometry, motionFraction(m, now, configRef.current)))
+    }
+    markersRef.current = next
   }, [pins])
+
+  // ── responder movement: slide in-flight pins along their route each frame ──
+  useEffect(() => {
+    if (movers.length === 0) return
+    let raf = 0
+    const tick = () => {
+      const now = Date.now()
+      for (const m of moversRef.current) {
+        markersRef.current.get(m.id)?.setLngLat(
+          pointAlongRoute(m.geometry, motionFraction(m, now, configRef.current)))
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [movers.length])
 
   // ── routes ──────────────────────────────────────────────────────────────
   useEffect(() => {

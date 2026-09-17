@@ -31,10 +31,9 @@ export default function IncidentCard({ incident, deviceName, nowMs, assignedUnit
         <span className="text-ink-soft tabular-nums">{timeAgo(incident.received_at, nowMs)}</span>
       </div>
 
-      <div className="mt-1.5 grid grid-cols-3 gap-2 text-[11px] text-ink-soft tabular-nums">
+      <div className="mt-1.5 grid grid-cols-2 gap-2 text-[11px] text-ink-soft tabular-nums">
         <span>peak <b className="text-ink">{(incident.peak_g ?? incident.trigger_peak_g)?.toFixed(2) ?? '—'} g</b></span>
-        <span>conf <b className="text-ink">{incident.confidence != null ? `${(incident.confidence * 100).toFixed(0)}%` : '—'}</b></span>
-        <span className="truncate" title={coords(incident.lat, incident.lon)}>
+        <span className="truncate text-right" title={coords(incident.lat, incident.lon)}>
           {coords(incident.lat, incident.lon)}
         </span>
       </div>

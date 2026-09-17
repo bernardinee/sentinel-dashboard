@@ -1,4 +1,78 @@
-import type { UnitStatus, UnitType } from './types'
+import type { DispatchConfig, Unit, UnitStatus, UnitType } from './types'
+
+// ── Responder movement ───────────────────────────────────────────────────────
+// The map animates a dispatched unit along its stored road route. The maths
+// below MUST match the backend's app/modules/movement.py so the on-map pin and
+// the server-side status flip agree; the timing constants come from the server
+// (GET /dispatch/config) rather than being hard-coded twice.
+
+export const DEFAULT_DISPATCH_CONFIG: DispatchConfig = { mobilize_s: 8, sim_speed: 1 }
+
+const MOVING: UnitStatus[] = ['dispatched', 'en_route', 'on_scene']
+
+/** A unit currently travelling a route, distilled to what the map animation
+ *  needs. `id` matches the unit pin's id so MapView can find the marker. */
+export interface UnitMotion {
+  id: string
+  geometry: [number, number][]
+  dispatchedAt: number
+  etaS: number
+}
+
+export function unitMotions(units: Unit[]): UnitMotion[] {
+  const out: UnitMotion[] = []
+  for (const u of units) {
+    if (u.route_geometry && u.route_geometry.length >= 2 &&
+        u.dispatched_at && u.route_eta_s != null && MOVING.includes(u.status)) {
+      const t = Date.parse(u.dispatched_at)
+      if (!Number.isNaN(t)) {
+        out.push({ id: `unit-${u.id}`, geometry: u.route_geometry, dispatchedAt: t, etaS: u.route_eta_s })
+      }
+    }
+  }
+  return out
+}
+
+/** Fraction [0..1] of the route covered: 0 while mobilising, ramping to 1 on
+ *  arrival. Mirrors response_phase() on the backend. */
+export function motionFraction(m: UnitMotion, nowMs: number, cfg: DispatchConfig): number {
+  const elapsed = (nowMs - m.dispatchedAt) / 1000
+  const travel = Math.max(1, m.etaS / cfg.sim_speed)
+  if (elapsed < cfg.mobilize_s) return 0
+  if (elapsed < cfg.mobilize_s + travel) return (elapsed - cfg.mobilize_s) / travel
+  return 1
+}
+
+/** Point [lon, lat] at `fraction` along a [[lon,lat],…] polyline, by cumulative
+ *  length (planar with a latitude correction — accurate enough at city scale). */
+export function pointAlongRoute(geometry: [number, number][], fraction: number): [number, number] {
+  if (geometry.length < 2) return geometry[0] ?? [0, 0]
+  const frac = Math.min(1, Math.max(0, fraction))
+  const cosLat = Math.cos((geometry[0][1] * Math.PI) / 180)
+  const seg: number[] = []
+  let total = 0
+  for (let i = 1; i < geometry.length; i++) {
+    const dx = (geometry[i][0] - geometry[i - 1][0]) * cosLat
+    const dy = geometry[i][1] - geometry[i - 1][1]
+    const d = Math.hypot(dx, dy)
+    seg.push(d)
+    total += d
+  }
+  if (total <= 0) return geometry[geometry.length - 1]
+  let target = frac * total
+  for (let i = 1; i < geometry.length; i++) {
+    const d = seg[i - 1]
+    if (target <= d) {
+      const t = d === 0 ? 0 : target / d
+      return [
+        geometry[i - 1][0] + (geometry[i][0] - geometry[i - 1][0]) * t,
+        geometry[i - 1][1] + (geometry[i][1] - geometry[i - 1][1]) * t,
+      ]
+    }
+    target -= d
+  }
+  return geometry[geometry.length - 1]
+}
 
 export const UNIT_COLOR: Record<UnitType, string> = {
   AMBULANCE: '#0d7360',

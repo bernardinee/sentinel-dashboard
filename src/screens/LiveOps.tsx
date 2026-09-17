@@ -5,7 +5,10 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { useLive } from '../lib/live'
 import { hasFix, timeAgo, uptime } from '../lib/format'
-import { UNIT_COLOR, UNIT_LABEL, UNIT_STATUS_LABEL, UNIT_STATUS_STYLE } from '../lib/units'
+import {
+  DEFAULT_DISPATCH_CONFIG, UNIT_COLOR, UNIT_LABEL, UNIT_STATUS_LABEL,
+  UNIT_STATUS_STYLE, unitMotions,
+} from '../lib/units'
 import IncidentCard from '../components/IncidentCard'
 import MapView, { incidentPins, unitPins } from '../components/MapView'
 import type { Device } from '../lib/types'
@@ -100,6 +103,9 @@ export default function LiveOps() {
   const { data: units } = useQuery({
     queryKey: ['units'], queryFn: api.units, refetchInterval: 20000,
   })
+  const { data: dispatchConfig } = useQuery({
+    queryKey: ['dispatchConfig'], queryFn: api.dispatchConfig, staleTime: Infinity,
+  })
 
   const deviceNames = useMemo(() => {
     const m: Record<string, string> = {}
@@ -124,6 +130,8 @@ export default function LiveOps() {
     ...unitPins(units ?? []),
     ...incidentPins(incidents, (i) => navigate(`/incidents/${i.id}`)),
   ], [incidents, units, navigate])
+
+  const movers = useMemo(() => unitMotions(units ?? []), [units])
 
   const focus = useMemo(() => {
     const target = newestIncident && hasFix(newestIncident.lat, newestIncident.lon)
@@ -196,7 +204,8 @@ export default function LiveOps() {
 
       {/* Map */}
       <section className={`${view === 'map' ? 'block' : 'hidden'} lg:block relative min-h-0 flex-1`}>
-        <MapView pins={pins} focus={focus} zoom={12} visible={view === 'map'} />
+        <MapView pins={pins} focus={focus} zoom={12} visible={view === 'map'}
+          movers={movers} dispatchConfig={dispatchConfig ?? DEFAULT_DISPATCH_CONFIG} />
         {!isLoading && !incidents.some(i => hasFix(i.lat, i.lon)) && (
           <p className="absolute top-3 left-3 z-10 max-w-[260px] rounded-lg bg-white/95 p-3 text-xs text-ink shadow-card">
             No incident GPS fix yet. New SOS alerts will appear here when the phone or ESP32 sends a valid location.
